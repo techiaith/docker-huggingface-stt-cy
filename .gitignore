@@ -1,0 +1,8 @@
+models
+train/homedir
+server/log
+server/recordings
+*pycache*
+*.json
+*.pid
+*.log

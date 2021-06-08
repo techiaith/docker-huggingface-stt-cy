@@ -1,0 +1,7 @@
+datasets
+transformers
+torchaudio==0.7.2
+torch==1.7.1
+librosa
+jiwer
+optuna
