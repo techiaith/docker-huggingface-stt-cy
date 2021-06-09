@@ -19,7 +19,7 @@ Defnyddir data gan project Mozilla Common Voice ar gyfer hyfforddi ac i brofi ad
 lleferydd. Defnyddir corpws testun Cymraeg gan project OSCAR i hyfforddi'r model iaith. 
 
 Mae defnyddio'r ddau model ar y cyd ar set profi Common Voice Cymraeg, yn rhoi 
-[cyfradd gwallau o 15%](train/README.md#gwerthuso-evaluation)
+[cyfradd gwallau o 15%](train/README.md#gwerthuso)
 
 
 ## Gweinydd Adnabod Lleferydd

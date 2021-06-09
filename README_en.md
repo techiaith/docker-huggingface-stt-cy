@@ -2,19 +2,38 @@
 
 [(cliciwch yma os hoffwch ddarllen y README Cymraeg)](README.md)
 
-This repository contains an implementation for easy training of speech 
-recognition models and their provision via an online API with Docker.
+ - [Training your own models](#training)
+ - [Host a speech recognition server](#speech-recognition-server)
 
-Two types of models are supported. 
 
-First, a pretrained multilingual acoustic model (wav2vec2) by Facebook AI and HuggingFace
-is fine tuned for training an effective Welsh acoustic model.
+## Training
 
-However, the repository also contains scripts for training and utilising a KenLM 
-language model for improving decoding results considerably.
+This repository provides a Docker environment for training or fine-tuning
+pre-trained multilingual (wav2vec2) acoustic models by Facebook AI and 
+HuggingFace that implements Welsh language speech recognition (see (gweler [train/README.md](train/README_en.md))
 
-The Welsh language dataset from Common Voice is used for fine tuning the acoustic model and for testing. 
-The Welsh text corpus by the OSCAR project was used for training the language model.
+This repository also provides a means to train and utilise KenLM based language models that significantly improves recognition results. 
+
+The Welsh language dataset from Common Voice is used for fine tuning the acoustic model and for testing. The Welsh text corpus by the OSCAR project was used for training the language model.
+
+Evaluating both models on the Welsh Common Voice test set gives a [word error rate of 15%](train/README_en.md#evaluation)
+
+## Speech Recognition server
+
+This repository also contains a simple API server implementation for hosting your trained models locally or online, or for hosting models trained by Bangor University's Language Technologies Unit. 
+
+Go to [server/README.md](server/README_en.md) for more information.
+
+The models can be found in action in a transcription service website - Trawsgrifiwr Ar-lein (https://trawsgrifiwr.techiaith.cymru)
+
+## Acknowledgements
+
+Such effective wav2vec2+KenLM speech recognition models would not have been possible without the work and contributions of the following organisations and individuals..
+
+ - Mozilla and everyone who has contributed their voices to [Common Voice](https://commonvoice.mozilla.org/)
+ - Facebook AI for wav2vec2 and subsequently HuggingFace: [Fine-Tune XLSR-Wav2Vec2 for low-resource ASR with 🤗 Transformers](https://huggingface.co/blog/fine-tune-xlsr-wav2vec2)
+ - Parlance Speech Recognition for their PyTorch CTC Decoder bindings and KenLM integration (https://github.com/parlance/ctcdecode)
+ 
 
 ## References
 
