@@ -53,7 +53,7 @@ Pedro Javier Ortiz Suárez, Benoît Sagot, and Laurent Romary 2019. *Asynchronou
 
 
 
-# Cydnabyddiaeth
+## Cydnabyddiaeth
 
 Os defnyddiwch chi'r adnodd hwn, gofynnwn yn garedig i chi gydnabod a chyfeirio at ein gwaith. Mae cydnabyddiaeth o'r fath yn gymorth i ni sicrhau cyllid yn y dyfodol i greu rhagor o adnoddau defnyddiol i'w rhannu.
 

@@ -43,3 +43,18 @@ Rosana Ardila, Megan Branson, Kelly Davis, Michael Henretty, Michael Kohler, Jos
 
 Pedro Javier Ortiz Suárez, Benoît Sagot, and Laurent Romary 2019. *Asynchronous pipelines for processing huge corpora on medium to low resource infrastructures.* In CMLC-7 (pp. 9 – 16). Leibniz-Institut für Deutsche Sprache.
 
+## Acknowledging our work
+
+If you use this resource, we kindly ask you to acknowledge and reference our work. Doing so helps us secure future funding to create more useful resources to share.
+
+```
+@misc{Jones2021,
+  author = {Jones, Dewi Bryn},
+  title = {Speech recognition for Welsh with fine tuned wav2vec2 and KenLM language models},
+  year = {2021},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/techiaith/docker-wav2vec2-ft-cy}},
+  commit = {}
+}
+```
