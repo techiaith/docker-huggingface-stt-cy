@@ -1,5 +1,7 @@
+import os
 import torch
 import librosa
+import yaml
 
 from ctcdecode import CTCBeamDecoder
 
@@ -16,16 +18,21 @@ def greedy_decode(logits):
     predicted_ids=torch.argmax(logits, dim=-1)
     return processor.batch_decode(predicted_ids)[0]
 
-def lm_decode(lm_file_path, logits):
-    
+def lm_decode(logits):
+
+    kenlm_model_name= "kenlm-cy"
+    kenlm_model_dir=os.path.join(models_root_dir, kenlm_model_name)
+    with open(os.path.join(kenlm_model_dir, "config_ctc.yaml"), 'r') as config_file:
+       ctc_lm_params=yaml.load(config_file, Loader=yaml.FullLoader)
+
     vocab=processor.tokenizer.convert_ids_to_tokens(range(0, processor.tokenizer.vocab_size))
     space_ix = vocab.index('|')
     vocab[space_ix]=' '
 
     ctcdecoder = CTCBeamDecoder(vocab, 
-        model_path=lm_file_path,
-        alpha=1.3648747541523258,
-        beta=0.441997826890268,
+        model_path=os.path.join(kenlm_model_dir, "lm.binary"),
+        alpha=ctc_lm_params['alpha'],
+        beta=ctc_lm_params['beta'],
         cutoff_top_n=40,
         cutoff_prob=1.0,
         beam_width=100,
@@ -38,17 +45,17 @@ def lm_decode(lm_file_path, logits):
     return "".join(vocab[n] for n in beam_results[0][0][:out_lens[0][0]])
 
 #
-def main(audio_file, lm_file_path, **args):
+def main(audio_file, **args):
+    global models_root_dir
     global processor
     global model
 
-    organisation_name = "BangorUniversity"
-    model_name = "wav2vec2-large-xlsr-53-ft-cy"
-    huggingface_model = organisation_name + "/" + model_name
-    model_path = huggingface_model
+    models_root_dir="/models"
+    wav2vec2_model_name = "wav2vec2-xlsr-ft-cy"
+    wav2vec2_model_path = os.path.join(models_root_dir, wav2vec2_model_name)
 
-    processor = Wav2Vec2Processor.from_pretrained(model_path)
-    model = Wav2Vec2ForCTC.from_pretrained(model_path)
+    processor = Wav2Vec2Processor.from_pretrained(wav2vec2_model_path)
+    model = Wav2Vec2ForCTC.from_pretrained(wav2vec2_model_path)
 
     audio, rate = librosa.load(audio_file, sr=16000)
     inputs = processor(audio, sampling_rate=16_000, return_tensors="pt", padding=True)
@@ -56,12 +63,9 @@ def main(audio_file, lm_file_path, **args):
     with torch.no_grad():
         logits = model(inputs.input_values, attention_mask=inputs.attention_mask).logits
 
-    if not lm_file_path:
-        output=greedy_decode(logits)
-    else:
-        output=lm_decode(lm_file_path, logits)
+    print("Greedy decoding: " + greedy_decode(logits))
+    print("LM decoding: " + lm_decode(logits))
 
-    print (output)
 
 
 if __name__ == "__main__":
@@ -69,7 +73,6 @@ if __name__ == "__main__":
     parser = ArgumentParser(description=DESCRIPTION, formatter_class=RawTextHelpFormatter)
 
     parser.add_argument("--wav", dest="audio_file", required=True)
-    parser.add_argument("--lm", dest="lm_file_path")
     parser.set_defaults(func=main)
     args = parser.parse_args()
     args.func(**vars(args))
