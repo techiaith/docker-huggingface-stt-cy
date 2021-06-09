@@ -1,5 +1,7 @@
 # Mireinio modelau wav2vec2 XLSR gan Facebook AI ar gyfer y Gymraeg
 
+[(click here to read the README in English)](README_en.md)
+
 Cod i fireinio model wav2vec2 XLSR Facebook gyda HuggingFace ar gyfer wireddu 
 adnabod lleferydd Cymraeg effeithiol. Datblygwyd ac yna addaswyd yn benodol ar gyfer
 y Gymraeg yn ystod wythnos fireinio i ieithoedd llai eu hadnoddau gan HuggingFace. 

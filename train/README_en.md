@@ -1,5 +1,7 @@
 # Fine tune Facebook AI wav2vec2 XLSR for Welsh
 
+[(cliciwch yma os hoffwch ddarllen y README Cymraeg)](README.md)
+
 Code for fine tuning Facebook AI's wav2vec2 XLSR acoustic models with HuggingFace for
 Welsh language speech recognition. The original code was first developed and 
 subsequently specialized for Welsh during the HuggingFace Fine tuning week for lesser resourced languages:
