@@ -51,11 +51,11 @@ If you use this resource, we kindly ask you to acknowledge and reference our wor
 ```
 @misc{Jones2021,
   author = {Jones, Dewi Bryn},
-  title = {Speech recognition for Welsh with fine tuned wav2vec2 and KenLM language models},
+  title = {Speech recognition for Welsh with fine tuned wav2vec2 XLSR and KenLM language models},
   year = {2021},
   publisher = {GitHub},
   journal = {GitHub repository},
-  howpublished = {\url{https://github.com/techiaith/docker-wav2vec2-ft-cy}},
-  commit = {}
+  howpublished = {\url{https://github.com/techiaith/docker-wav2vec2-xlsr-ft-cy/releases/tag/21.05}},
+  commit = {a3136d8ce2c6e8b4c505b7e11c3e8441ac71656b}
 }
 ```
