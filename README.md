@@ -35,10 +35,9 @@ Gellir gweld enghraifft o'r modelau newydd ar waith o fewn gwefan gwasanaeth Tra
 
 ## Diolchiadau
 
-Diolch i'r cwmniau, sefydliadau ac unigolion canlynol sydd wedi ein helpu i wireddu datrysiad 
-adnabod lleferydd mor effeithiol..
+Diolch i'r cwmniau, sefydliadau ac unigolion canlynol sydd wedi ein helpu i wireddu datrysiad adnabod lleferydd mor effeithiol..
 
- - Mozilla a phawb sydd wedi cyfrannu yn hael ac yn wirfoddol drwy gwefan [Common Voice](https://commonvoice.mozilla.org/)
+ - Mozilla a phawb sydd wedi cyfrannu yn hael ac yn wirfoddol drwy gwefan [Common Voice](https://commonvoice.mozilla.org/), yn enwedig i Rhoslyn Prys (meddal.com) a ymgymerodd â nifer o ymgyrchoedd torfoli ar sail wirfoddol, i'r Mentrau Iaith, Cyngor Gwynedd, Llyfrgell Genedlaethol Cymru a weithiodd gyda Rhoslyn ar rai o'r ymgyrchoedd hyn, ac hefyd i Lywodraeth Cymru.
  - Facebook AI am y wav2vec2 cyntaf ac yna i HuggingFace: [Fine-Tune XLSR-Wav2Vec2 for low-resource ASR with 🤗 Transformers](https://huggingface.co/blog/fine-tune-xlsr-wav2vec2)
  - Parlance Speech Recognition am integreiddio CTC Decoder gyda PyTorch: (https://github.com/parlance/ctcdecode)
  

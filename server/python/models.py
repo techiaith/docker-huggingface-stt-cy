@@ -7,8 +7,9 @@ from pathlib import Path
 from tqdm import tqdm
 
 
-DATA_URL = "http://techiaith.cymru/wav2vec2"
 MODEL_VERSION=os.environ["MODEL_VERSION"]
+# e.g. https://github.com/techiaith/docker-wav2vec2-xlsr-ft-cy/releases/download/21.05/techiaith_bangor_kenlm-cy_21.05.tar.gz
+MODELS_URL = "https://github.com/techiaith/docker-wav2vec2-xlsr-ft-cy/releases/download/"
 
 
 class DownloadProgressBar(tqdm):
@@ -29,7 +30,7 @@ def download(model_name, version=MODEL_VERSION):
         Path(model_dir).mkdir(parents=True, exist_ok=True)
 
         filename = model_name.replace("/","_") + "." + version + ".tar.gz"
-        file_url = os.path.join(DATA_URL, filename)
+        file_url = os.path.join(MODELS_URL, version, filename)
 
         download_and_extract(file_url, model_dir)
 

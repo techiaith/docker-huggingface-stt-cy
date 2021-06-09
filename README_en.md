@@ -30,7 +30,7 @@ The models can be found in action in a transcription service website - Trawsgrif
 
 Such effective wav2vec2+KenLM speech recognition models would not have been possible without the work and contributions of the following organisations and individuals..
 
- - Mozilla and everyone who has contributed their voices to [Common Voice](https://commonvoice.mozilla.org/)
+ - Mozilla and everyone who has contributed their voices to [Common Voice](https://commonvoice.mozilla.org/) but in particular to Rhoslyn Prys (meddal.com) who undertook on a voluntary basis a number of crowdsourcing campaigns, to the Mentrau Iaith, Gwynedd Council, the National Library of Wales who worked with Rhoslyn on some of these campaigns, and to the Welsh Government.
  - Facebook AI for wav2vec2 and subsequently HuggingFace: [Fine-Tune XLSR-Wav2Vec2 for low-resource ASR with 🤗 Transformers](https://huggingface.co/blog/fine-tune-xlsr-wav2vec2)
  - Parlance Speech Recognition for their PyTorch CTC Decoder bindings and KenLM integration (https://github.com/parlance/ctcdecode)
  
