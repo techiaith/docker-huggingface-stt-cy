@@ -33,9 +33,10 @@ On a GeForce RTX 2080 it takes up to 13 hours.
 
 # Evaluation
 
+`root@bff0be8425ea:/usr/src/xlsr-finetune# python3 evaluate.py`
+
 |Training Data | Test Data | Model | Decode | WER |
 |---|---|---|---|---|
 |cv6.1 training+validation | cv6.1 test | wav2vec2 ft cy | greedy | 25.59% |
 |cv6.1 training+validation | cv6.1 test | wav2vec2 ft cy | ctc | 25.47% |
 |cv6.1 training+validation | cv6.1 test | wav2vec2 ft cy | ctc with lm (kenlm, n=5) | **15.07%** |
-

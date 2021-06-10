@@ -32,6 +32,8 @@ Ar GeForce RTX 2080, mae'n cymryd hyd at 13 awr.
 
 # Gwerthuso 
 
+`root@bff0be8425ea:/usr/src/xlsr-finetune# python3 evaluate.py`
+
 |Training Data | Test Data | Model | Decode | WER |
 |---|---|---|---|---|
 |cv6.1 training+validation | cv6.1 test | wav2vec2 ft cy | greedy | 25.59% |
