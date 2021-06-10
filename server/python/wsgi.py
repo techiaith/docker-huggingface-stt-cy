@@ -70,25 +70,27 @@ class SpeechToTextAPI(object):
         #cherrypy.log("tmp file written to %s" % upload_tmp_filepath)
 
         result = {
-                'version':1
+            'version':1
         }
 
         #
         success = True
         text = ''
+        alignments=list()
 
         fin = wave.open(upload_tmp_filepath, 'rb')
         fs = fin.getframerate()
         if fs != 16000:
-            success = False            
+            success = False
         fin.close()
 
         if success:
             #cherrypy.log("Starting STT ....")
 
             try:
-                for transcript, time_start, time_end in self.stt.transcribe(upload_tmp_filepath):
+                for transcript, alignment, time_start, time_end in self.stt.transcribe(upload_tmp_filepath):
                     text = text + " " + transcript
+                    alignments.extend(alignment)
             except Exception as e:
                 cherrypy.log("STT not a success")
                 cherrypy.log(e)
@@ -99,8 +101,10 @@ class SpeechToTextAPI(object):
 
         result.update({
             'success': success,
-            'text': text
+            'text': text,
+            'alignment': alignments
         })
+
 
         Path(upload_tmp_filepath).unlink()
 
