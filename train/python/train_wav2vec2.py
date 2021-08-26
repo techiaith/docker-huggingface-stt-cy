@@ -8,7 +8,7 @@ import librosa
 import numpy as np
 import soundfile as sf
 
-import copy_outputs
+import publish
 
 from pathlib import Path
 from datasets import Dataset, ClassLabel, load_dataset, load_metric, concatenate_datasets
@@ -161,48 +161,19 @@ def compute_metrics(pred):
     return {"wer": wer}
 
 
-def train(models_root_dir, model_name):
+def train(output_dir, language, train=True):
 
     global processor
     global tokenizer
     global model
     global wer_metric
 
-    language = "cy"    
-
-    # CV 6.1 (cy) training+dev set provides approximately 16 hours of unique sentence recordings.
     #
-    dataset_name="common_voice"
+    dataset_name="custom_common_voice.py"
     training_split="train+validation"
 
-    # Or use an alternative training set - all validated Common Voice recordings minus recordings 
-    # of sentences present in the test set. 
-    # (in CV 6.1 the validated set ammounts to 24 hours with some sentences having been recorded 
-    #  multiple times by multiple speakers.)
-    #
-    #dataset_name-"custom_common_voice.py"
-    #training_split="validated"
-
-    output_dir=os.path.join(Path.home(), model_name)
-
-    print (output_dir, language, model_name) 
-
     print ("\nLoading %s datasets" % dataset_name)
-    if dataset_name=="custom_common_voice.py":
-        common_voice_validated = load_dataset(dataset_name, language, split=training_split)
-
-        df_validated = common_voice_validated.to_pandas()
-        df_test = common_voice_test.to_pandas()
-        test_sentences = df_test['sentence'].tolist()
-
-        df_train = df_validated[~df_validated['sentence'].isin(test_sentences)]
-        df_train = df_train.set_index('path')
-
-        common_voice_train = Dataset.from_pandas(df_train)
-    else:
-        common_voice_train = load_dataset(dataset_name, language, split=training_split)
-
-    #
+    common_voice_train = load_dataset(dataset_name, language, split=training_split)
     common_voice_test = load_dataset(dataset_name, language, split="test")
 
 
@@ -250,13 +221,13 @@ def train(models_root_dir, model_name):
     common_voice_test = common_voice_test.map(speech_file_to_array_fn, remove_columns=common_voice_test.column_names)
     
     print ("\nDownsampling all speech files")
-    common_voice_train = common_voice_train.map(resample)
-    common_voice_test = common_voice_test.map(resample)
+    common_voice_train = common_voice_train.map(resample, num_proc=8)
+    common_voice_test = common_voice_test.map(resample, num_proc=8)
 
     print ("\nPreparing the training dataset")
     common_voice_train = common_voice_train.map(prepare_dataset, remove_columns=common_voice_train.column_names, batch_size=8, num_proc=4, batched=True)
 
-    print ("\nPreparing validation set")
+    print ("\nPreparing test set")
     common_voice_test = common_voice_test.map(prepare_dataset, remove_columns=common_voice_test.column_names, batch_size=8, num_proc=4, batched=True)
 
     print ("\nSetting up data collator")
@@ -286,7 +257,7 @@ def train(models_root_dir, model_name):
     training_args = TrainingArguments(
         output_dir=output_dir,
         group_by_length=True,
-        per_device_train_batch_size=16,
+        per_device_train_batch_size=48,
         gradient_accumulation_steps=2,
         evaluation_strategy="steps",
         num_train_epochs=30,
@@ -312,11 +283,12 @@ def train(models_root_dir, model_name):
     print ("\nTraining...")
     trainer.train()
 
+    # copy config and model binary file
+    publish.export_checkpoint(output_dir)
+
     print ("\n\nModel trained. See %s" % output_dir)
 
-    print ("\n\nCopying files to models directory..")
-    output_model_dir = os.path.join(models_root_dir, model_name)
-    return copy_outputs.copy_for_evaluation_or_publishing(output_dir, output_model_dir)
+    return output_dir
 
 
 if __name__ == "__main__":

@@ -13,7 +13,7 @@ import text_preprocess
 
 from pathlib import Path
 from ctcdecode import CTCBeamDecoder
-from datasets import load_dataset, load_metric
+from datasets import load_dataset, load_metric, set_caching_enabled
 from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
 
 from argparse import ArgumentParser, RawTextHelpFormatter
@@ -24,6 +24,8 @@ DESCRIPTION = """
 Train and optimize a KenLM language model from HuggingFace's provision of the Welsh corpus by the OSCAR project.
 
 """
+
+set_caching_enabled(False)
 
 
 # Preprocessing the datasets.
@@ -50,10 +52,11 @@ def optimize_lm_objective(trial):
     
     alpha = trial.suggest_uniform('lm_alpha', 0, 6)
     beta = trial.suggest_uniform('lm_beta',0, 5)
-    
+
     try:
+        binarylm_file_path=os.path.join(lm_model_dir, "lm.binary")
         ctcdecoder = CTCBeamDecoder(vocab, 
-            model_path=os.path.join(language_model_dir, "lm.binary"),
+            model_path=binarylm_file_path,
             alpha=alpha,
             beta=beta,
             cutoff_top_n=40,
@@ -63,9 +66,8 @@ def optimize_lm_objective(trial):
             blank_id=processor.tokenizer.pad_token_id,
             log_probs_input=True
         )
-        
-        result = test_dataset.map(decode) #, batch_size=8)
-        result_wer = wer.compute(predictions=result["pred_strings_with_lm"], references=result["sentence"])        
+        result = test_dataset.map(decode)
+        result_wer = wer.compute(predictions=result["pred_strings_with_lm"], references=result["sentence"])
         trial.report(result_wer, step=0)
 
     except Exception as e:
@@ -77,9 +79,7 @@ def optimize_lm_objective(trial):
 
 
 
-def train(models_root_dir, model_name, oscar_dataset_name):
-
-    lm_dir = os.path.join(models_root_dir, model_name)
+def train(lm_dir, oscar_dataset_name):
 
     Path(lm_dir).mkdir(parents=True, exist_ok=True)    
     corpus_file_path = os.path.join(lm_dir, "corpus.txt")
@@ -116,18 +116,19 @@ def train(models_root_dir, model_name, oscar_dataset_name):
 
 
 
-def optimize(kenlm_model_dir, wav2vec_model_path):
+def optimize(lm_dir, wav2vec_model_path):
     global processor
     global model
     global vocab
     global wer
     global resampler
     global test_dataset
-    global language_model_dir
+    global lm_model_dir
 
-    language_model_dir=kenlm_model_dir
+    lm_model_dir=lm_dir
 
-    test_dataset = load_dataset("common_voice", "cy", split="test")
+    test_dataset = load_dataset("custom_common_voice.py", "cy", split="test")
+    #test_dataset = load_dataset("common_voice", "cy", split="test")
 
     wer = load_metric("wer")
 
@@ -145,6 +146,7 @@ def optimize(kenlm_model_dir, wav2vec_model_path):
     print ("Preprocessing speech files")
     test_dataset = test_dataset.map(speech_file_to_array_fn)
 
+
     print ("Beginning alpha and beta hyperparameter optimization")
     study = optuna.create_study()
     study.optimize(optimize_lm_objective, n_jobs=1, n_trials=100)
@@ -152,7 +154,7 @@ def optimize(kenlm_model_dir, wav2vec_model_path):
     #
     lm_best = {'alpha':study.best_params['lm_alpha'], 'beta':study.best_params['lm_beta']}
 
-    config_file_path = os.path.join(language_model_dir, "config_ctc.yaml")
+    config_file_path = os.path.join(lm_model_dir, "config_ctc.yaml")
     with open (config_file_path, 'w') as config_file:
         yaml.dump(lm_best, config_file)
 

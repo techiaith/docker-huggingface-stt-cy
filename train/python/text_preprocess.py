@@ -9,5 +9,8 @@ def cleanup(sentence):
     sentence = sentence.replace('\u2013',"-")
     sentence = sentence.replace('\u2014',"-")
     sentence = sentence.replace('\u2018',"'")
+    sentence = sentence.replace('\u201C',"")
+    sentence = sentence.replace('\u201D',"")
     sentence = sentence.replace('ñ',"n")
+    sentence = sentence.replace(" - "," ")
     return sentence

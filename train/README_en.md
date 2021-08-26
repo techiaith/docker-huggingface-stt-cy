@@ -22,6 +22,17 @@ for training the languge model.
 `$ make`
 
 `$ make run `
+`
+In order to download the Common Voice data, you will need to create a file named `data_url.py` that contains only one line
+for the data's URL provided to you be the Common Voice website...
+
+`root@bff0be8425ea:/usr/src/xlsr-finetune# vi data_url.py`
+
+`_DATA_URL = "https://voice-prod-bundler-ee1969a6ce8178826482b88e843c335139bd3fb4.s3.amazonaws.com/cv-corpus-7.0-2021-07-21/cy.tar.gz"`
+
+See also https://commonvoice.mozilla.org/cy/datasets
+
+Then to start training....
 
 `root@bff0be8425ea:/usr/src/xlsr-finetune# python3 run.py`
 

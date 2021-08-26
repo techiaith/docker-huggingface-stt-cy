@@ -146,7 +146,12 @@
             'X-CSRFTOKEN': csrftoken
           },
           success: function(response){
-            $('#result').text(response.text);
+            var text='';
+            for (var i=0; i < response.transcripts.length; i++){
+              var obj=response.transcripts[i];
+              text = text + obj.text + '\n';
+            }
+            $('#result').text(text);
             $('#progress-panel').hide();
           },
           error: function(response){

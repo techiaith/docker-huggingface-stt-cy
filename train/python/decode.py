@@ -19,7 +19,7 @@ def greedy_decode(logits):
     predicted_ids=torch.argmax(logits, dim=-1)
     return processor.batch_decode(predicted_ids)[0]
 
-def lm_decode(logits):
+def lm_decode(ctc_matrix):
 
     kenlm_model_name= "kenlm-cy"
     kenlm_model_dir=os.path.join(models_root_dir, kenlm_model_name)
@@ -39,10 +39,10 @@ def lm_decode(logits):
         beam_width=10,
         num_processes=4,
         blank_id=processor.tokenizer.pad_token_id,
-        log_probs_input=True
+        log_probs_input=False
         )
 
-    beam_results, beam_scores, timesteps, out_lens = ctcdecoder.decode(logits)
+    beam_results, beam_scores, timesteps, out_lens = ctcdecoder.decode(ctc_matrix)
   
     # beam_results - Shape: BATCHSIZE x N_BEAMS X N_TIMESTEPS A batch containing the series 
     # of characters (these are ints, you still need to decode them back to your text) representing 
@@ -50,14 +50,17 @@ def lm_decode(logits):
     # total number of timesteps, and the additional data is non-sensical, so to see the top beam 
     # (as int labels) from the first item in the batch, you need to run beam_results[0][0][:out_len[0][0]].
     beam_string = "".join(vocab[n] for n in beam_results[0][0][:out_lens[0][0]])
-    
+   
+    # beam_scores - Shape: BATCHSIZE x N_BEAMS A batch with the approximate CTC score of each beam
+    score = float(beam_scores[0][0].item()) / 100
+ 
     # timesteps : BATCHSIZE x N_BEAMS : the timestep at which the nth output character has peak probability. 
     # Can be used as alignment between the audio and the transcript.
     alignment = list()
     for i in range(0, out_lens[0][0]):        
         alignment.append([beam_string[i], int(timesteps[0][0][i])] )
 
-    return beam_string, alignment, int(beam_results.shape[2]) 
+    return beam_string, alignment, score, int(beam_results.shape[2]) 
 
 #
 def main(audio_file, **args):
@@ -81,13 +84,15 @@ def main(audio_file, **args):
 
     print("Greedy decoding: " + greedy_decode(logits))
 
-    text, alignment, timesteps = lm_decode(logits)
+    ctc_matrix = torch.softmax(logits, dim=-1)
+    text, alignment, score, timesteps = lm_decode(ctc_matrix)
     timestep_length = librosa.get_duration(audio) / timesteps
     for a in alignment:
         a[1] = a[1] * timestep_length  
 
     print("LM decoding (with alignments): " + text)
-    print (alignment)
+    print("Score: " + str(score))
+    print("Alignment:" + str(alignment))
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.2.0-cudnn8-devel-ubuntu20.04
+FROM nvidia/cuda:11.4.0-cudnn8-devel-ubuntu20.04
 
 LABEL maintainer="techiaith"
 LABEL repository="wav2vec2-xlsr-ft-cy"
@@ -23,7 +23,8 @@ ENV LC_ALL cy_GB.UTF-8
 RUN mkdir -p /xlsr-ft-train
 WORKDIR /xlsr-ft-train
 
-COPY python /xlsr-ft-train/
+RUN pip3 install torch==1.9.0+cu111 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
+COPY python/requirements.txt /xlsr-ft-train/
 RUN pip3 install -r requirements.txt 
 
 # Install KenLM
@@ -36,4 +37,6 @@ ENV PATH="/usr/local/src/kenlm/build/bin:/usr/local/src/kenlm/scripts:${PATH}"
 RUN git clone --recursive https://github.com/parlance/ctcdecode.git /tmp/ctcdecode \
  && cd /tmp/ctcdecode && pip3 install .
 
+COPY python /xlsr-ft-train
 WORKDIR /xlsr-ft-train
+

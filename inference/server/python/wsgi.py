@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import os
 import sys
 import glob
@@ -15,6 +14,7 @@ from pathlib import Path
 from speech_to_text import SpeechToText
 
 STATIC_PATH=os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static_html')
+
 class StaticRoot(object): pass
 
 class SpeechToTextAPI(object):
@@ -22,18 +22,8 @@ class SpeechToTextAPI(object):
 
     def __init__(self):
         self.tmp_dir = '/recordings'
+        self.stt=SpeechToText()        
 
-        self.model_domain=os.environ["MODEL_DOMAIN"]        
-        self.model_version=os.environ["MODEL_VERSION"]
-
-        self.acoustic_model = models.download(os.environ["WAV2VEC2_MODEL_NAME"])
-        self.language_model = models.download(os.environ["KENLM_MODEL_NAME"])
-
-        cherrypy.log("Loading wav2vec2 model....")
-        cherrypy.log("   acoustic_model_path={}".format(self.acoustic_model))
-        cherrypy.log("   language_model_path={}".format(self.language_model))
-
-        self.stt=SpeechToText(acoustic_model_path=self.acoustic_model, language_model_path=self.language_model)        
         cherrypy.log("Loading wav2vec2 and KenLM models completed")
 
 
@@ -48,17 +38,16 @@ class SpeechToTextAPI(object):
     def versions(self):
         result = {
             'version': 1,
-            'model_name': self.acoustic_model,
-            'language_model_name': self.language_model,
-            'model_domain': self.model_domain,
-            'model_version': self.model_version 
+            'model_name': self.stt.acoustic_model,
+            'language_model_name': self.stt.language_model,
+            'model_version': self.stt.model_version 
         }
         return result
 
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
-    def speech_to_text(self, soundfile, **kwargs):
+    def speech_to_text(self, soundfile, max_segment_length=5, max_segment_words=14, **kwargs):
         upload_tmp_filepath = os.path.join(self.tmp_dir, 'ds_request_' + datetime.now().strftime('%y-%m-%d_%H%M%S') + '.wav')
         with open(upload_tmp_filepath, 'wb') as wavfile:
             while True:
@@ -75,8 +64,7 @@ class SpeechToTextAPI(object):
 
         #
         success = True
-        text = ''
-        alignments=list()
+        transcripts=list() 
 
         fin = wave.open(upload_tmp_filepath, 'rb')
         fs = fin.getframerate()
@@ -85,26 +73,23 @@ class SpeechToTextAPI(object):
         fin.close()
 
         if success:
-            #cherrypy.log("Starting STT ....")
+            cherrypy.log("Transcribing %s" % upload_tmp_filepath)
 
             try:
-                for transcript, alignment, time_start, time_end in self.stt.transcribe(upload_tmp_filepath):
-                    text = text + " " + transcript
-                    alignments.extend(alignment)
+                for transcript, time_start, time_end, alignment in self.stt.transcribe(upload_tmp_filepath, max_segment_length=max_segment_length, max_segment_words=max_segment_words):
+                    transcripts.append({'text': transcript, 'start':time_start, 'end':time_end, 'alignment':alignment})
             except Exception as e:
-                cherrypy.log("STT not a success")
+                cherrypy.log("Error during transcribing %s" % upload_tmp_filepath)
                 cherrypy.log(e)
                 success=False
-            #else:
-                #cherrypy.log("STT successful")
+            else:
+                cherrypy.log("Transcribing %s succesful." % upload_tmp_filepath)
 
 
         result.update({
             'success': success,
-            'text': text,
-            'alignment': alignments
+            'transcripts': transcripts 
         })
-
 
         Path(upload_tmp_filepath).unlink()
 

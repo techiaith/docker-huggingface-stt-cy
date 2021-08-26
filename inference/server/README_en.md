@@ -17,7 +17,7 @@ DeepSpeech are available - https://github.com/techiaith/docker-deepspeech-cy-ser
 
 ```
 $ git clone https://github.com/techiaith/docker-wav2vec2-xlsr-ft-cy
-$ cd docker-wav2vec2-xlsr-ft-cy/server
+$ cd docker-wav2vec2-xlsr-ft-cy/inference/server
 $ make
 ```
 

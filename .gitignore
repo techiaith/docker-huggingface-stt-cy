@@ -1,8 +1,7 @@
-models
+train/models
 train/homedir
-server/log
-server/recordings
 *pycache*
 *.json
 *.pid
 *.log
+*.lock

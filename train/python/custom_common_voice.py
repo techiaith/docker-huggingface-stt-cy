@@ -21,7 +21,16 @@ import os
 import datasets
 
 
-_DATA_URL = "https://voice-prod-bundler-ee1969a6ce8178826482b88e843c335139bd3fb4.s3.amazonaws.com/cv-corpus-6.1-2020-12-11/{}.tar.gz"
+#_DATA_URL = "https://voice-prod-bundler-ee1969a6ce8178826482b88e843c335139bd3fb4.s3.amazonaws.com/cv-corpus-6.1-2020-12-11/{}.tar.gz"
+#_DATA_URL = "http://techiaith.cymru/corpws/CommonVoice/cy/7.0/cv-corpus-7.0-2021-07-21-cy.tar.gz"
+
+try:
+  from data_url import _DATA_URL
+except ImportError:
+  print ("Please create a data_url.py file with _DATA_URL set to a URL link you can optain from the Common Voice website")
+
+  
+
 
 _CITATION = """\
 @inproceedings{commonvoice:2020,
@@ -607,7 +616,7 @@ class CustomCommonVoiceConfig(datasets.BuilderConfig):
         self.num_of_voice = kwargs.pop("num_of_voice", None)
         description = f"Common Voice speech to text dataset in {self.language} version {self.sub_version} of {self.date_of_snapshot}. The dataset comprises {self.validated_hr_total} of validated transcribed speech data from {self.num_of_voice} speakers. The dataset has a size of {self.size}"
         super(CustomCommonVoiceConfig, self).__init__(
-            name=name, version=datasets.Version("6.1.0", ""), description=description, **kwargs
+            name=name, version=datasets.Version("7.0.0", ""), description=description, **kwargs
         )
 
 
@@ -657,7 +666,7 @@ class CustomCommonVoice(datasets.GeneratorBasedBuilder):
         print (self.config.name)
         dl_path = dl_manager.download_and_extract(_DATA_URL.format(self.config.name))
         print(dl_path)
-        abs_path_to_data = os.path.join(dl_path, "cv-corpus-6.1-2020-12-11", self.config.name)
+        abs_path_to_data = os.path.join(dl_path, "cv-corpus-7.0-2021-07-21", self.config.name)
         abs_path_to_clips = os.path.join(abs_path_to_data, "clips")
 
         return [

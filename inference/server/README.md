@@ -17,7 +17,7 @@ llai ar sail Mozilla DeepSpeech ar gael - https://github.com/techiaith/docker-de
 
 ```
 $ git clone https://github.com/techiaith/docker-wav2vec2-xlsr-ft-cy
-$ cd docker-wav2vec2-xlsr-ft-cy/server
+$ cd docker-wav2vec2-xlsr-ft-cy/inference/server
 $ make
 ```
 
@@ -53,5 +53,3 @@ Mae mesur gallu'r peiriant yn ogystal â'i wella yn waith sy'n dal yn parhau.
 
 Yn y cyfamser, os hoffwch chi weld y peiriannau yn gwella, yna recordiwch rhai brawddegau wefan Mozilla CommonVoice (https://voice.mozilla.org/cy), fel bydd gennyn ni ragor o ddata hyfforddi'r peiriannau. 
 Neu defnyddiwch ein hap Macsen! (http://techiaith.cymru/macsen)
-
-
