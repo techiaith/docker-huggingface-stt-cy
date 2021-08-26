@@ -47,7 +47,9 @@ Ar GeForce RTX 2080, mae'n cymryd hyd at 13 awr.
 
 |Training Data | Test Data | Model | Decode | WER |
 |---|---|---|---|---|
+|cv7 training+validation | cv7 test | wav2vec2 ft cy | greedy | 24.28%% |
+|cv7 training+validation | cv7 test | wav2vec2 ft cy | ctc | 24.27% |
+|cv7 training+validation | cv7 test | wav2vec2 ft cy | ctc with lm (kenlm, n=5) | **14.05%** |
 |cv6.1 training+validation | cv6.1 test | wav2vec2 ft cy | greedy | 25.59% |
 |cv6.1 training+validation | cv6.1 test | wav2vec2 ft cy | ctc | 25.47% |
-|cv6.1 training+validation | cv6.1 test | wav2vec2 ft cy | ctc with lm (kenlm, n=5) | **15.07%** |
-
+|cv6.1 training+validation | cv6.1 test | wav2vec2 ft cy | ctc with lm (kenlm, n=5) | 15.07% |
