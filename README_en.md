@@ -1,3 +1,6 @@
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5270295.svg)](https://doi.org/10.5281/zenodo.5270295)
+
 # docker-wav2vec2-xlsr-ft-cy
 
 [(cliciwch yma os hoffwch ddarllen y README Cymraeg)](README.md)
@@ -49,13 +52,16 @@ Pedro Javier Ortiz Suárez, Benoît Sagot, and Laurent Romary 2019. *Asynchronou
 If you use this resource, we kindly ask you to acknowledge and reference our work. Doing so helps us secure future funding to create more useful resources to share.
 
 ```
-@misc{Jones2021,
-  author = {Jones, Dewi Bryn},
-  title = {Speech recognition for Welsh with fine tuned wav2vec2 XLSR and KenLM language models},
-  year = {2021},
-  publisher = {GitHub},
-  journal = {GitHub repository},
-  howpublished = {\url{https://github.com/techiaith/docker-wav2vec2-xlsr-ft-cy/releases/tag/21.05}},
-  commit = {a3136d8ce2c6e8b4c505b7e11c3e8441ac71656b}
+@software{dewi_bryn_jones_2021_5270295,
+  author       = {Dewi Bryn Jones},
+  title        = {{GitHub Repository: techiaith/docker-wav2vec2-xlsr- 
+                   ft-cy Speech recognition for Welsh with fine tuned
+                   wav2vec2 XLSR and KenLM language models.}},
+  month        = aug,
+  year         = 2021,
+  publisher    = {Zenodo},
+  version      = {21.08},
+  doi          = {10.5281/zenodo.5270295},
+  url          = {https://doi.org/10.5281/zenodo.5270295}
 }
 ```
