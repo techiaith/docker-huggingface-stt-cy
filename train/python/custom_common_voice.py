@@ -21,9 +21,6 @@ import os
 import datasets
 
 
-#_DATA_URL = "https://voice-prod-bundler-ee1969a6ce8178826482b88e843c335139bd3fb4.s3.amazonaws.com/cv-corpus-6.1-2020-12-11/{}.tar.gz"
-#_DATA_URL = "http://techiaith.cymru/corpws/CommonVoice/cy/7.0/cv-corpus-7.0-2021-07-21-cy.tar.gz"
-
 try:
   from data_url import _DATA_URL
 except ImportError:
