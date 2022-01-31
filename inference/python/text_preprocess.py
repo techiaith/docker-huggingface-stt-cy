@@ -12,6 +12,5 @@ def cleanup(sentence):
     sentence = sentence.replace('\u201C',"")
     sentence = sentence.replace('\u201D',"")
     sentence = sentence.replace('ñ',"n")
-    sentence = sentence.replace('í',"i")
     sentence = sentence.replace(" - "," ")
     return sentence

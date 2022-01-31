@@ -21,7 +21,7 @@ def export_checkpoint(training_dir):
 
 
 #
-def copy_for_evaluation_or_publishing(source_dir, target_dir):
+def copy_for_publishing(source_dir, target_dir):
     print ("Copying for evaluation or publishing")
     print (source_dir)
     print (target_dir)

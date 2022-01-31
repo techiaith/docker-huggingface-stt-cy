@@ -1,6 +1,7 @@
 import os
 import io
 import sys
+import glob
 import json
 import yaml
 import shlex
@@ -68,7 +69,19 @@ def optimize_lm_objective(trial):
         )
         result = test_dataset.map(decode)
         result_wer = wer.compute(predictions=result["pred_strings_with_lm"], references=result["sentence"])
+        result_cer = cer.compute(predictions=result["pred_strings_with_lm"], references=result["sentence"])
+
+        # clear tmp cache
+        fileList = glob.glob("/tmp/**/cache-*.arrow", recursive=True)
+        for filepath in fileList:
+            try:
+                os.remove(filepath)
+            except OSError:
+                print("Error deleting tmp cache file %s" % filepath)
+
+        print(f"WER: {result_wer} | CER: {result_cer}")
         trial.report(result_wer, step=0)
+        
 
     except Exception as e:
         print (e)
@@ -121,6 +134,7 @@ def optimize(lm_dir, wav2vec_model_path):
     global model
     global vocab
     global wer
+    global cer
     global resampler
     global test_dataset
     global lm_model_dir
@@ -131,6 +145,7 @@ def optimize(lm_dir, wav2vec_model_path):
     #test_dataset = load_dataset("common_voice", "cy", split="test")
 
     wer = load_metric("wer")
+    cer = load_metric("cer")
 
     processor = Wav2Vec2Processor.from_pretrained(wav2vec_model_path)
     model = Wav2Vec2ForCTC.from_pretrained(wav2vec_model_path)

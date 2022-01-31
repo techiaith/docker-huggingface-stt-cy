@@ -123,7 +123,7 @@ def main(testset_csv_file_path, model_path, revision, **args):
             prediction = "".join(vocab[n] for n in beam_results[0][0][:out_lens[0][0]]) 
                                     
             reference=text_preprocess.cleanup(testfile["transcript"])
-            test_stats.add(clip_file_path, prediction, reference) 
+            test_stats.add(clip_file_path, prediction, reference)                        
     
     test_stats.print()
     test_stats.save()

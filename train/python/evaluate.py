@@ -40,7 +40,7 @@ def speech_file_to_array_fn(batch):
 
 
 def evaluate(batch):
-    inputs = processor(batch["speech"], sampling_rate=16_000, return_tensors="pt", padding=True)
+    inputs = processor(batch["speech"], sampling_rate=16000, return_tensors="pt", padding=True)
     
     with torch.no_grad():
        logits = model(inputs.input_values.to("cuda"), attention_mask=inputs.attention_mask.to("cuda")).logits
@@ -49,13 +49,15 @@ def evaluate(batch):
 
     batch["pred_strings"] = processor.batch_decode(pred_ids)[0].strip()
 
-    beam_results, beam_scores, timesteps, out_lens = ctcdecoder.decode(logits)
-    pred_with_ctc = "".join(vocab[n] for n in beam_results[0][0][:out_lens[0][0]])
-    batch["pred_strings_with_ctc"]=pred_with_ctc.strip()
+    if ctcdecoder:
+        beam_results, beam_scores, timesteps, out_lens = ctcdecoder.decode(logits)
+        pred_with_ctc = "".join(vocab[n] for n in beam_results[0][0][:out_lens[0][0]])
+        batch["pred_strings_with_ctc"]=pred_with_ctc.strip()
     
-    beam_results, beam_scores, timesteps, out_lens = kenlm_ctcdecoder.decode(logits)
-    pred_with_lm = "".join(vocab[n] for n in beam_results[0][0][:out_lens[0][0]])
-    batch["pred_strings_with_lm"]=pred_with_lm.strip()
+    if kenlm_ctcdecoder:
+        beam_results, beam_scores, timesteps, out_lens = kenlm_ctcdecoder.decode(logits)
+        pred_with_lm = "".join(vocab[n] for n in beam_results[0][0][:out_lens[0][0]])
+        batch["pred_strings_with_lm"]=pred_with_lm.strip()
 
     return batch
 
@@ -74,17 +76,22 @@ def main(wav2vec2_model_path, revision, **args):
     test_dataset = load_dataset("custom_common_voice.py", "cy", split="test")
 
     wer = load_metric("wer")
+    cer = load_metric("cer")
 
     model.to("cuda")
 
-    resampler = torchaudio.transforms.Resample(48_000, 16_000)
+    resampler = torchaudio.transforms.Resample(48000, 16000)
 
     test_dataset = test_dataset.map(speech_file_to_array_fn)
     result = test_dataset.map(evaluate, batch_size=8)
 
     print("WER: {:2f}".format(100 * wer.compute(predictions=result["pred_strings"], references=result["sentence"])))
-    print("WER with CTC: {:2f}".format(100 * wer.compute(predictions=result["pred_strings_with_ctc"], references=result["sentence"])))
-    print("WER with CTC+LM: {:2f}".format(100 * wer.compute(predictions=result["pred_strings_with_lm"], references=result["sentence"])))
+    if ctcdecoder: print("WER with CTC: {:2f}".format(100 * wer.compute(predictions=result["pred_strings_with_ctc"], references=result["sentence"])))
+    if kenlm_ctcdecoder: print("WER with CTC+LM: {:2f}".format(100 * wer.compute(predictions=result["pred_strings_with_lm"], references=result["sentence"])))
+
+    print("CER: {:2f}".format(100 * cer.compute(predictions=result["pred_strings"], references=result["sentence"])))
+    if ctcdecoder: print("CER with CTC: {:2f}".format(100 * cer.compute(predictions=result["pred_strings_with_ctc"], references=result["sentence"])))
+    if kenlm_ctcdecoder: print("CER with CTC+LM: {:2f}".format(100 * cer.compute(predictions=result["pred_strings_with_lm"], references=result["sentence"])))
 
 
 if __name__ == "__main__":

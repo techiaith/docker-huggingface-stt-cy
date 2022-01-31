@@ -57,26 +57,30 @@ class Transcriber:
 
         print("Textgrid of transcription saved to %s" % textgrid_file_path)
 
+    
 
+def main(wav_file, output_srt_file, with_lm, **args):
 
-def main(wav_file, **args):        
-    stt=SpeechToText()
+    stt=SpeechToText(ctc_with_lm=with_lm)
     t=Transcriber()
+
+    #
     transcriptions = list()
-    for transcript, time_start, time_end, alignments in stt.transcribe(wav_file):
+    for transcript, time_start, time_end, alignments in stt.transcribe(wav_file, withlm=with_lm):
         transcriptions.append((transcript, time_start, time_end, alignments))
 
-    t.to_srt_file(transcriptions, wav_file.replace(".wav", ".srt"))
-    t.to_textgrid_file(transcriptions, wav_file, wav_file.replace(".wav", ".TextGrid"))
+    t.to_srt_file(transcriptions, output_srt_file)
+    
+    #output_textgrid_file=output_srt_file.replace(".srt", ".TextGrid")
+    #t.to_textgrid_file(transcriptions, wav_file, output_textgrid_file)
 
-
+    
 #
 if __name__ == "__main__":    
     parser = ArgumentParser(description=DESCRIPTION, formatter_class=RawTextHelpFormatter)    
     parser.add_argument("-w", dest="wav_file", required=True)
-    parser.add_argument("-s", dest="output_srt_file")
-    parser.add_argument("-x", dest="output_textgrid_file")
-    parser.add_argument("-r", dest="reference_file")
+    parser.add_argument("-s", dest="output_srt_file", required=True)
+    parser.add_argument("-l", dest="with_lm", action='store_true')
     parser.set_defaults(func=main)
     args = parser.parse_args()
     args.func(**vars(args))

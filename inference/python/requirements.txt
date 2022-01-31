@@ -3,11 +3,16 @@ numpy
 wave
 jiwer
 webrtcvad
-transformers
+transformers==4.9.2
 tqdm==4.61.0
 pyyaml==5.4.1
 torchaudio==0.7.2
 torch==1.7.1
+datasets
 librosa
 srt
 praatio<5
+pydub
+pandas
+python_speech_features
+scipy

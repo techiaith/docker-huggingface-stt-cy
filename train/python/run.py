@@ -38,7 +38,8 @@ if __name__ == "__main__":
 
     print ("Packaging for publishing...")
     publish_dir = os.path.join(models_root_dir, "published", wav2vec2_model_name)
-    kenlm_archive_file_path = publish.make_model_tarfile(kenlm_model_name, lm_model_dir, publish_dir)    
-    wav2vec2_published_file_path = publish.copy_for_evaluation_or_publishing(wav2vec2_model_dir, publish_dir)
+
+    if perform_training_kenlm or perform_optimize_kenlm: kenlm_archive_file_path = publish.make_model_tarfile(kenlm_model_name, lm_model_dir, publish_dir)    
+    if perform_training_wav2vec2: publish_dir = publish.copy_for_publishing(wav2vec2_model_dir, publish_dir)
     
-    print ("Files for publication ready at {}".format(wav2vec2_published_file_path))
+    print ("Files for publication ready at {}".format(publish_dir))

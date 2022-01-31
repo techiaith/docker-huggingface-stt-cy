@@ -26,47 +26,24 @@ DESCRIPTION = """
 
 class SpeechToText:
 
-    def __init__(self, models_root_dir='', wav2vec2_model_path='', version='', language_model_path=''):
+    def __init__(self, models_root_dir='', wav2vec2_model_path='', version='', language_model_path='', ctc_with_lm=False):
+
+        self.device = "cpu"
+        if torch.cuda.is_available():
+            self.device="cuda"
+
+        print ("wav2vec loading to device %s" % self.device)
 
         if len(wav2vec2_model_path)==0:
             self.wav2vec2_model_path = os.environ["WAV2VEC2_MODEL_NAME"]
 
         if len(version)==0:
             self.version=os.environ["MODEL_VERSION"]
-
-        if len(models_root_dir)==0:
-            self.models_root_dir=os.path.join(models.default_root_dir(),  self.wav2vec2_model_path, self.version)
         
-        self.language_model_path = models.download_file(self.models_root_dir, self.wav2vec2_model_path, self.version, "kenlm.tar.gz")
+        self.processor, self.model, self.vocab, self.ctcdecoder, self.kenlm_ctcdecoder = models.create(self.wav2vec2_model_path, self.version)
+
         
-        #
-        print ("Initialising processor...")
-        self.processor = Wav2Vec2Processor.from_pretrained(self.wav2vec2_model_path, cache_dir=self.models_root_dir, revision=self.version)
-
-        print ("Initialising wav2vec ctc model...")
-        self.model = Wav2Vec2ForCTC.from_pretrained(self.wav2vec2_model_path, cache_dir=self.models_root_dir, revision=self.version)
-                
-        print ("Initialising vocab...")
-        self.vocab=self.processor.tokenizer.convert_ids_to_tokens(range(0, self.processor.tokenizer.vocab_size))
-        space_ix = self.vocab.index('|')
-        self.vocab[space_ix]=' '
-
-        print ("Initialising ctc with lm decoder...")
-        with open(os.path.join(self.language_model_path, "config_ctc.yaml"), 'r') as config_file:
-            ctc_lm_params=yaml.load(config_file, Loader=yaml.FullLoader)
         
-        self.ctcdecoder = CTCBeamDecoder(self.vocab,
-            model_path=os.path.join(self.language_model_path, "lm.binary"),
-            alpha=ctc_lm_params['alpha'],
-            beta=ctc_lm_params['beta'],
-            cutoff_top_n=40,
-            cutoff_prob=1.0,
-            beam_width=10,
-            num_processes=4,
-            blank_id=self.processor.tokenizer.pad_token_id,
-            log_probs_input=True
-        )
-
     def model_name():
         return self.wav2vec2_model_path
 
@@ -75,42 +52,68 @@ class SpeechToText:
 
     def model_version():
         return self.version
+    
 
-    def transcribe(self, wav_file_path, max_segment_length=8, max_segment_words=14):
+    def split_frames(self, frames, aggressiveness):
+        
+        for audio_segment in split(frames, aggressiveness=aggressiveness):
+            
+            audio_segment_buffer, audio_segment_time_start, audio_segment_time_end = audio_segment
+
+            audio_segment_time_start = audio_segment_time_start / 1000
+            audio_segment_time_end = audio_segment_time_end / 1000
+            audio_segment_duration = audio_segment_time_end - audio_segment_time_start
+
+            #print (audio_segment_duration, len(audio_segment_buffer), aggressiveness)
+
+            if audio_segment_duration>100.0 and aggressiveness<4:              
+                self.split_frames(audio_segment_buffer, aggressiveness+1)
+            else:
+                yield audio_segment_buffer, audio_segment_time_start, audio_segment_time_end
+
+
+    def transcribe(self, wav_file_path, max_segment_length=8, max_segment_words=14, withlm=False):
+        
+        print ("Transcribing: %s" % wav_file_path)
+
         wav_audio, rate = librosa.load(wav_file_path, sr=16000)
 
         time_start = 0.0
         time_end = librosa.get_duration(y=wav_audio,sr=rate)
         
-        frames = read_frames_from_file(wav_file_path)
-        for audio_segment in split(frames, aggressiveness=1):
+        frames = read_frames_from_file(wav_file_path)        
+        for audio_segment in self.split_frames(frames, aggressiveness=1):
             
             audio_segment_buffer, audio_segment_time_start, audio_segment_time_end = audio_segment
-            audio_segment_time_start = audio_segment_time_start / 1000
-            audio_segment_time_end = audio_segment_time_end / 1000
 
             # Run stt on the chunk that just completed VAD
             audio = np.frombuffer(audio_segment_buffer, dtype=np.int16)
 
-            inputs = self.processor(audio, sampling_rate=16_000, return_tensors="pt", padding=True)
+            features = self.processor(audio, sampling_rate=16_000, return_tensors="pt", padding=True)
             with torch.no_grad():
-                logits = self.model(inputs.input_values, attention_mask=inputs.attention_mask).logits
-        
-            transcription, alignment, timesteps = self.ctc_withlm_decode(logits)
+                logits = self.model(features.input_values.to(self.device), attention_mask=features.attention_mask.to(self.device)).logits
+
+            transcription, alignment, timesteps = self.ctc_decode(logits, withlm) 
             
             timestep_length = (audio_segment_time_end - audio_segment_time_start) / timesteps
             for a in alignment:
                 a[1] = ((a[1] * timestep_length) + audio_segment_time_start)
 
-            aligned_words = self.aligned_words(alignment)
+            aligned_words = self.aligned_words(alignment, timestep_length)
 
             if len(aligned_words) > 0:
-                for transcription, seg_start, seg_end, seg_alignment in self.segment(aligned_words, max_segment_length, max_segment_words):            
+                for transcription, seg_start, seg_end, seg_alignment in self.segment(aligned_words, max_segment_length, max_segment_words):                    
                     yield transcription, seg_start, seg_end, seg_alignment
 
 
-    def ctc_withlm_decode(self, logits):
-        beam_results, beam_scores, timesteps, out_lens = self.ctcdecoder.decode(logits)
+
+
+    def ctc_decode(self, logits, withlm):
+
+        if withlm:
+            beam_results, beam_scores, timesteps, out_lens = self.kenlm_ctcdecoder.decode(logits)
+        else:
+            beam_results, beam_scores, timesteps, out_lens = self.ctcdecoder.decode(logits)
 
         # beam_results - Shape: BATCHSIZE x N_BEAMS X N_TIMESTEPS A batch containing the series 
         # of characters (these are ints, you still need to decode them back to your text) representing 
@@ -138,7 +141,7 @@ class SpeechToText:
         return self.processor.batch_decode(predicted_ids)[0]
         
 
-    def aligned_words(self, char_alignments):
+    def aligned_words(self, char_alignments, timestep_length):
         word_alignments = list()
 
         word = ''
@@ -150,6 +153,7 @@ class SpeechToText:
                 if len(word)==0:
                     word = c
                     w_start=ts
+                    w_end=ts+timestep_length
                 else:
                     word = word + c
                     w_end = ts
@@ -181,6 +185,7 @@ class SpeechToText:
                 segment_end = a['end']
                 segment_alignments = list()
                 segment_alignments.append(a)
+
             elif a['start'] > segment_start + segment_max_length:
                 yield segment_text, segment_start, segment_end, segment_alignments
                 segment_text = a['word']
@@ -188,6 +193,7 @@ class SpeechToText:
                 segment_end = a['end']
                 segment_alignments = list()
                 segment_alignments.append(a)
+
             else:
                 segment_text = segment_text + ' ' + a['word']
                 segment_text = segment_text.strip()

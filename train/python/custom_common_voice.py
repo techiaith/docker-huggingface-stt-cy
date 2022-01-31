@@ -21,6 +21,7 @@ import os
 import datasets
 
 
+
 try:
   from data_url import _DATA_URL
 except ImportError:
@@ -613,7 +614,7 @@ class CustomCommonVoiceConfig(datasets.BuilderConfig):
         self.num_of_voice = kwargs.pop("num_of_voice", None)
         description = f"Common Voice speech to text dataset in {self.language} version {self.sub_version} of {self.date_of_snapshot}. The dataset comprises {self.validated_hr_total} of validated transcribed speech data from {self.num_of_voice} speakers. The dataset has a size of {self.size}"
         super(CustomCommonVoiceConfig, self).__init__(
-            name=name, version=datasets.Version("7.0.0", ""), description=description, **kwargs
+            name=name, version=datasets.Version("8.0.0", ""), description=description, **kwargs
         )
 
 
@@ -643,7 +644,7 @@ class CustomCommonVoice(datasets.GeneratorBasedBuilder):
                 "down_votes": datasets.Value("int64"),
                 "age": datasets.Value("string"),
                 "gender": datasets.Value("string"),
-                "accent": datasets.Value("string"),
+                "accents": datasets.Value("string"),
                 "locale": datasets.Value("string"),
                 "segment": datasets.Value("string"),
             }
@@ -663,7 +664,7 @@ class CustomCommonVoice(datasets.GeneratorBasedBuilder):
         print (self.config.name)
         dl_path = dl_manager.download_and_extract(_DATA_URL.format(self.config.name))
         print(dl_path)
-        abs_path_to_data = os.path.join(dl_path, "cv-corpus-7.0-2021-07-21", self.config.name)
+        abs_path_to_data = os.path.join(dl_path, "cv-corpus-8.0-2022-01-19", self.config.name)
         abs_path_to_clips = os.path.join(abs_path_to_data, "clips")
 
         return [

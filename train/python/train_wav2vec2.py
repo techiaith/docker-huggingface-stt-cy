@@ -157,8 +157,9 @@ def compute_metrics(pred):
     # we do not want to group tokens when computing the metrics
     label_str = processor.batch_decode(pred.label_ids, group_tokens=False)
     wer = wer_metric.compute(predictions=pred_str, references=label_str)
+    cer = cer_metric.compute(predictions=pred_str, references=label_str)
 
-    return {"wer": wer}
+    return {"wer": wer, "cer": cer}
 
 
 def train(output_dir, language, train=True):
@@ -167,6 +168,7 @@ def train(output_dir, language, train=True):
     global tokenizer
     global model
     global wer_metric
+    global cer_metric
 
     #
     dataset_name="custom_common_voice.py"
@@ -178,8 +180,8 @@ def train(output_dir, language, train=True):
 
 
     print ("\nRemoving unnecessary columns")
-    common_voice_train = common_voice_train.remove_columns(["accent", "age", "client_id", "down_votes", "gender", "locale", "segment", "up_votes"])
-    common_voice_test = common_voice_test.remove_columns(["accent", "age", "client_id", "down_votes", "gender", "locale", "segment", "up_votes"])
+    common_voice_train = common_voice_train.remove_columns(["accents", "age", "client_id", "down_votes", "gender", "locale", "segment", "up_votes"])
+    common_voice_test = common_voice_test.remove_columns(["accents", "age", "client_id", "down_votes", "gender", "locale", "segment", "up_votes"])
 
 
     print ("\nRemoving unnecesary characters from sentences ")
@@ -200,6 +202,7 @@ def train(output_dir, language, train=True):
 
     vocab_dict["[UNK]"] = len(vocab_dict)
     vocab_dict["[PAD]"] = len(vocab_dict)
+    
     print(len(vocab_dict))
     print(vocab_dict)
 
@@ -234,6 +237,7 @@ def train(output_dir, language, train=True):
     data_collator = DataCollatorCTCWithPadding(processor=processor, padding=True)
 
     wer_metric = load_metric("wer")
+    cer_metric = load_metric("cer")
 
     print ("\nLoading pre-trained facebook/wav2vec2-large-xlsr model")
     # see https://huggingface.co/transformers/model_doc/wav2vec2.html?highlight=mask_time_prob#transformers.Wav2Vec2Config
@@ -267,6 +271,7 @@ def train(output_dir, language, train=True):
         learning_rate=3e-4,
         warmup_steps=400,
         save_total_limit=1,
+        logging_dir='/logs'
     )
 
     print ("\nConstructing trainer")
