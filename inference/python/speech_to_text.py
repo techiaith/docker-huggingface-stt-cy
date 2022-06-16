@@ -28,31 +28,40 @@ class SpeechToText:
 
     def __init__(self, models_root_dir='', wav2vec2_model_path='', version='', language_model_path='', ctc_with_lm=False):
 
-        self.device = "cpu"
-        if torch.cuda.is_available():
-            self.device="cuda"
-
-        print ("wav2vec loading to device %s" % self.device)
-
         if len(wav2vec2_model_path)==0:
             self.wav2vec2_model_path = os.environ["WAV2VEC2_MODEL_NAME"]
 
+        # @todo - improve. 
+        if len(language_model_path)==0:
+            self.language_model_path = os.path.join(os.environ["WAV2VEC2_MODEL_NAME"], "kenlm")
+
+        #
         if len(version)==0:
             self.version=os.environ["MODEL_VERSION"]
         
+        #
         self.processor, self.model, self.vocab, self.ctcdecoder, self.kenlm_ctcdecoder = models.create(self.wav2vec2_model_path, self.version)
+        
+        self.device = "cpu"
+        if torch.cuda.is_available():
+            self.device="cuda"
+            self.model.cuda()
+        
+        print ("wav2vec loaded to device %s" % self.device)
 
-        
-        
-    def model_name():
+
+
+    def get_model_name(self):
         return self.wav2vec2_model_path
 
-    def language_model():
+    def get_language_model(self):
         return self.language_model_path
 
-    def model_version():
+    def get_model_version(self):
         return self.version
     
+    def get_device(self):
+        return self.device
 
     def split_frames(self, frames, aggressiveness):
         

@@ -12,11 +12,11 @@ build: config
 run: config
 	mkdir -p ${PWD}/log/
 	mkdir -p ${PWD}/recordings/
-	docker run --name techiaith-wav2vec2-xlsr-ft-server-cy \
+	docker run --gpus all --name techiaith-wav2vec2-xlsr-ft-server-cy \
 		--restart=always \
 		-it -d -p ${PORT_NUMBER}:8008 \
+		-v ${PWD}/recordings/:/recordings \
 		-v ${PWD}/../models/:/models \
-		-v ${PWD}/../recordings/:/recordings \
 		-v ${PWD}/log/:/var/log/wav2vec2 \
 		techiaith/wav2vec2-xlsr-ft-server-cy
 

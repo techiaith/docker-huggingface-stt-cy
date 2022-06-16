@@ -614,7 +614,7 @@ class CustomCommonVoiceConfig(datasets.BuilderConfig):
         self.num_of_voice = kwargs.pop("num_of_voice", None)
         description = f"Common Voice speech to text dataset in {self.language} version {self.sub_version} of {self.date_of_snapshot}. The dataset comprises {self.validated_hr_total} of validated transcribed speech data from {self.num_of_voice} speakers. The dataset has a size of {self.size}"
         super(CustomCommonVoiceConfig, self).__init__(
-            name=name, version=datasets.Version("8.0.0", ""), description=description, **kwargs
+            name=name, version=datasets.Version("9.0.0", ""), description=description, **kwargs
         )
 
 
@@ -664,7 +664,7 @@ class CustomCommonVoice(datasets.GeneratorBasedBuilder):
         print (self.config.name)
         dl_path = dl_manager.download_and_extract(_DATA_URL.format(self.config.name))
         print(dl_path)
-        abs_path_to_data = os.path.join(dl_path, "cv-corpus-8.0-2022-01-19", self.config.name)
+        abs_path_to_data = os.path.join(dl_path, "cv-corpus-9.0-2022-04-27", self.config.name)
         abs_path_to_clips = os.path.join(abs_path_to_data, "clips")
 
         return [
@@ -702,6 +702,13 @@ class CustomCommonVoice(datasets.GeneratorBasedBuilder):
                     "filepath": os.path.join(abs_path_to_data, "other.tsv"),
                     "path_to_clips": abs_path_to_clips,
                 },
+            ),
+            datasets.SplitGenerator(
+                name="train_plus",
+                gen_kwargs={
+                    "filepath": os.path.join(abs_path_to_data, "train_plus.tsv"),
+                    "path_to_clips": abs_path_to_clips,
+                }
             ),
             datasets.SplitGenerator(
                 name="invalidated",

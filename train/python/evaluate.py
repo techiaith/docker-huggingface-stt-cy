@@ -39,7 +39,7 @@ def speech_file_to_array_fn(batch):
     return batch
 
 
-def evaluate(batch):
+def batch_evaluate(batch):
     inputs = processor(batch["speech"], sampling_rate=16000, return_tensors="pt", padding=True)
     
     with torch.no_grad():
@@ -63,6 +63,9 @@ def evaluate(batch):
 
 
 def main(wav2vec2_model_path, revision, **args):
+    evaluate(wav2vec2_model_path, revision)
+
+def evaluate(wav2vec2_model_path, revision):
     global processor
     global model
     global vocab
@@ -83,7 +86,7 @@ def main(wav2vec2_model_path, revision, **args):
     resampler = torchaudio.transforms.Resample(48000, 16000)
 
     test_dataset = test_dataset.map(speech_file_to_array_fn)
-    result = test_dataset.map(evaluate, batch_size=8)
+    result = test_dataset.map(batch_evaluate, batch_size=8)
 
     print("WER: {:2f}".format(100 * wer.compute(predictions=result["pred_strings"], references=result["sentence"])))
     if ctcdecoder: print("WER with CTC: {:2f}".format(100 * wer.compute(predictions=result["pred_strings_with_ctc"], references=result["sentence"])))
@@ -103,7 +106,7 @@ if __name__ == "__main__":
     wav2vec_model_dir = os.path.join(models_root_dir, wav2vec2_model_name)
 
     parser = ArgumentParser(description=DESCRIPTION, formatter_class=RawTextHelpFormatter)
-    
+
     parser.add_argument("--model_path", dest="wav2vec2_model_path", default=wav2vec_model_dir)
     parser.add_argument("--revision", dest="revision", default='')
     parser.set_defaults(func=main)

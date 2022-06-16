@@ -1,7 +1,10 @@
 train/models
 train/homedir
+train/logs
+train/data
 *pycache*
 *.json
 *.pid
 *.log
 *.lock
+gh

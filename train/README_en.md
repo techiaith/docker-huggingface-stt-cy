@@ -38,9 +38,6 @@ Then to start training....
 
 Depending on your graphics card, it will take some hours to train.
 
-On a GeForce RTX 2080 it takes up to 13 hours.
-
-
 
 # Evaluation
 
@@ -48,13 +45,18 @@ On a GeForce RTX 2080 it takes up to 13 hours.
 
 |Training Data | Test Data | Model | Decode | WER | CER |
 |---|---|---|---|---|---|
-|cv8 training+validation | cv8 test | wav2vec2 ft cy | greedy | 24.03%% | 6.74%|
-|cv8 training+validation | cv8 test | wav2vec2 ft cy | ctc | 24.01% | 6.71%|
-|cv8 training+validation | cv9 test | wav2vec2 ft cy | ctc with lm (kenlm, n=5) | **13.79%** | **4.77%**|
-|cv7 training+validation | cv7 test | wav2vec2 ft cy | greedy | 24.28%% ||
-|cv7 training+validation | cv7 test | wav2vec2 ft cy | ctc | 24.27% ||
-|cv7 training+validation | cv7 test | wav2vec2 ft cy | ctc with lm (kenlm, n=5) | 14.05% ||
-|cv6.1 training+validation | cv6.1 test | wav2vec2 ft cy | greedy | 25.59% ||
-|cv6.1 training+validation | cv6.1 test | wav2vec2 ft cy | ctc | 25.47% ||
-|cv6.1 training+validation | cv6.1 test | wav2vec2 ft cy | ctc with lm (kenlm, n=5) | 15.07% ||
-
+|cv9 training+validation | cv9 test | wav2vec2-xlsr-ft-cy | greedy | 23.09% | 6.43%|
+|cv9 training+validation | cv9 test | wav2vec2-xlsr-ft-cy | ctc | 23.01% | 6.41%|
+|cv9 training+validation | cv9 test | wav2vec2-xlsr-ft-cy | ctc with lm (kenlm, n=5) | 13.74% | 4.85%|
+|cv9 training+validation | cv9 test | wav2vec2-xls-r-1b-ft-cy | greedy | **19.68%** | **5.5%**|
+|cv9 training+validation | cv9 test | wav2vec2-xls-r-1b-ft-cy | ctc | **19.6%** | **5.47%**|
+|cv9 training+validation | cv9 test | wav2vec2-xls-r-1b-ft-cy | ctc with lm (kenlm, n=5) | **12.38%** | **4.07%**|
+|cv8 training+validation | cv8 test | wav2vec2-xlsr-ft-cy | greedy | 24.03%% | 6.74%|
+|cv8 training+validation | cv8 test | wav2vec2-xlsr-ft-cy | ctc | 24.01% | 6.71%|
+|cv8 training+validation | cv8 test | wav2vec2-xlsr-ft-cy | ctc with lm (kenlm, n=5) | 13.79% | 4.77%|
+|cv7 training+validation | cv7 test | wav2vec2-xlsr-ft-cy | greedy | 24.28%% ||
+|cv7 training+validation | cv7 test | wav2vec2-xlsr-ft-cy | ctc | 24.27% ||
+|cv7 training+validation | cv7 test | wav2vec2-xlsr-ft-cy | ctc with lm (kenlm, n=5) | 14.05% ||
+|cv6.1 training+validation | cv6.1 test | wav2vec2-xlsr-ft-cy | greedy | 25.59% ||
+|cv6.1 training+validation | cv6.1 test | wav2vec2-xlsr-ft-cy | ctc | 25.47% ||
+|cv6.1 training+validation | cv6.1 test | wav2vec2-xlsr-ft-cy | ctc with lm (kenlm, n=5) | 15.07% ||

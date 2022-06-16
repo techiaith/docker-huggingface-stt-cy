@@ -116,7 +116,7 @@ def train(lm_dir, oscar_dataset_name):
     subprocess.run(shlex.split(cmd), stderr=sys.stderr, stdout=sys.stdout)
 
     # generate binary version
-    cmd = "build_binary trie {arpa_file} {bin_file}".format(arpa_file=lm_arpa_file_path, bin_file=lm_bin_file_path)
+    cmd = "build_binary trie -s {arpa_file} {bin_file}".format(arpa_file=lm_arpa_file_path, bin_file=lm_bin_file_path)
     print (cmd)
 
     subprocess.run(shlex.split(cmd), stderr=sys.stderr, stdout=sys.stdout)

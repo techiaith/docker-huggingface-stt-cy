@@ -1,8 +1,9 @@
 import os
-import train_wav2vec2
-import train_kenlm
 import publish
+import train_kenlm
+import train_wav2vec2
 
+from evaluate import evaluate
 from pathlib import Path
 
 """
@@ -26,15 +27,19 @@ if __name__ == "__main__":
     wav2vec2_model_dir = os.path.join(Path.home(), wav2vec2_model_name)
     lm_model_dir = os.path.join(Path.home(), kenlm_model_name)
 
-    print ("\nTraining acoustic model...")
-    if perform_training_wav2vec2: wav2vec2_model_dir = train_wav2vec2.train(wav2vec2_model_dir, language)
+    if perform_training_wav2vec2:
+        print ("\nTraining acoustic model...")
+        wav2vec2_model_dir = train_wav2vec2.train(wav2vec2_model_dir, language)
+        evaluate(wav2vec2_model_dir, '')
 
-    print ("\n\nTraining KenLM language model...")    
-    if perform_training_kenlm: lm_model_dir = train_kenlm.train(lm_model_dir, "unshuffled_deduplicated_cy")
+    if perform_training_kenlm:
+        print ("\n\nTraining KenLM language model...")    
+        lm_model_dir = train_kenlm.train(lm_model_dir, "unshuffled_deduplicated_cy")
     
-    print ("\n\nOptimizing KenLM language model...")
-    print (lm_model_dir)
-    if perform_optimize_kenlm: train_kenlm.optimize(lm_model_dir, wav2vec2_model_dir)
+    if perform_optimize_kenlm:
+        print ("\n\nOptimizing KenLM language model...")
+        print (lm_model_dir)
+        train_kenlm.optimize(lm_model_dir, wav2vec2_model_dir)
 
     print ("Packaging for publishing...")
     publish_dir = os.path.join(models_root_dir, "published", wav2vec2_model_name)

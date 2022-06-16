@@ -14,4 +14,7 @@ def cleanup(sentence):
     sentence = sentence.replace('ñ',"n")
     sentence = sentence.replace('í',"i")
     sentence = sentence.replace(" - "," ")
+
+    sentence = " ".join(sentence.strip().split())
+    
     return sentence

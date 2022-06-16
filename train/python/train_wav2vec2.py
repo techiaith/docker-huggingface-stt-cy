@@ -1,5 +1,6 @@
 import os
 import json
+import uuid
 import random
 import pandas as pd
 import torch
@@ -11,7 +12,7 @@ import soundfile as sf
 import publish
 
 from pathlib import Path
-from datasets import Dataset, ClassLabel, load_dataset, load_metric, concatenate_datasets
+from datasets import Dataset, ClassLabel, load_dataset, load_from_disk, load_metric, concatenate_datasets
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union
 
@@ -127,7 +128,7 @@ def speech_file_to_array_fn(batch):
 
 
 def resample(batch):
-    batch["speech"] = librosa.resample(np.asarray(batch["speech"]), 48_000, 16_000)
+    batch["speech"] = librosa.resample(np.asarray(batch["speech"]), orig_sr=48000, target_sr=16000)
     batch["sampling_rate"] = 16_000
     return batch
 
@@ -162,76 +163,105 @@ def compute_metrics(pred):
     return {"wer": wer, "cer": cer}
 
 
-def train(output_dir, language, train=True):
+
+def train(output_dir, language):
 
     global processor
     global tokenizer
     global model
+    
     global wer_metric
     global cer_metric
 
-    #
-    dataset_name="custom_common_voice.py"
-    training_split="train+validation"
+    training_dataset_dir_path = "/root/datasets/train.hf"
+    test_dataset_dir_path = "/root/datasets/test.hf"
 
-    print ("\nLoading %s datasets" % dataset_name)
-    common_voice_train = load_dataset(dataset_name, language, split=training_split)
-    common_voice_test = load_dataset(dataset_name, language, split="test")
+    session_id = uuid.uuid4().hex
+    output_dir = os.path.join(output_dir, session_id)
+    logging_dir = os.path.join("/logs", session_id)
 
+    if Path(training_dataset_dir_path).is_dir() and Path(test_dataset_dir_path).is_dir():
+        #
+        print ("\nLoading datasets from previous runs")
+        common_voice_train=load_from_disk(training_dataset_dir_path)
+        common_voice_test=load_from_disk(test_dataset_dir_path)
 
-    print ("\nRemoving unnecessary columns")
-    common_voice_train = common_voice_train.remove_columns(["accents", "age", "client_id", "down_votes", "gender", "locale", "segment", "up_votes"])
-    common_voice_test = common_voice_test.remove_columns(["accents", "age", "client_id", "down_votes", "gender", "locale", "segment", "up_votes"])
+        print ("\nConstructing tokenizer")
+        tokenizer = Wav2Vec2CTCTokenizer("./vocab.%s.json" % language, unk_token="[UNK]", pad_token="[PAD]", word_delimiter_token="|")
 
+        print ("\nFeature Extractor") 
+        feature_extractor = Wav2Vec2FeatureExtractor(feature_size=1, sampling_rate=16000, padding_value=0.0, do_normalize=True, return_attention_mask=True)
 
-    print ("\nRemoving unnecesary characters from sentences ")
-    common_voice_train = common_voice_train.map(remove_special_characters)
-    common_voice_test = common_voice_test.map(remove_special_characters)
+        print ("\nConstructing Processor")
+        processor = Wav2Vec2Processor(feature_extractor=feature_extractor, tokenizer=tokenizer)
 
+        processor.save_pretrained(output_dir)
 
-    print ("\nExtracting tokens and saving to vocab.%s.json" % language)
-    vocab_train = common_voice_train.map(extract_all_chars, batched=True, batch_size=-1, keep_in_memory=True, remove_columns=common_voice_train.column_names)
-    vocab_test = common_voice_test.map(extract_all_chars, batched=True, batch_size=-1, keep_in_memory=True, remove_columns=common_voice_test.column_names)
+    else:
+        #
+        dataset_name="custom_common_voice.py"
+        training_split="train_plus+validation"
+        #training_split="train+validation"
+        
+        print ("\nLoading %s datasets" % dataset_name)
+        common_voice_train = load_dataset(dataset_name, language, split=training_split)
+        common_voice_test = load_dataset(dataset_name, language, split="test")
 
-    vocab_list = list(set(vocab_train["vocab"][0]) | set(vocab_test["vocab"][0]))
+        print ("\nRemoving unnecessary columns")
+        common_voice_train = common_voice_train.remove_columns(["accents", "age", "client_id", "down_votes", "gender", "locale", "segment", "up_votes"])
+        common_voice_test = common_voice_test.remove_columns(["accents", "age", "client_id", "down_votes", "gender", "locale", "segment", "up_votes"])
 
-    vocab_dict = {v: k for k, v in enumerate(vocab_list)}
+        print ("\nRemoving unnecesary characters from sentences ")
+        common_voice_train = common_voice_train.map(remove_special_characters)
+        common_voice_test = common_voice_test.map(remove_special_characters)
 
-    vocab_dict["|"] = vocab_dict[" "]
-    del vocab_dict[" "]
+        print ("\nExtracting tokens and saving to vocab.%s.json" % language)
+        vocab_train = common_voice_train.map(extract_all_chars, batched=True, batch_size=-1, keep_in_memory=True, remove_columns=common_voice_train.column_names)
+        vocab_test = common_voice_test.map(extract_all_chars, batched=True, batch_size=-1, keep_in_memory=True, remove_columns=common_voice_test.column_names)
 
-    vocab_dict["[UNK]"] = len(vocab_dict)
-    vocab_dict["[PAD]"] = len(vocab_dict)
+        vocab_list = list(set(vocab_train["vocab"][0]) | set(vocab_test["vocab"][0]))
+
+        vocab_dict = {v: k for k, v in enumerate(vocab_list)}
+
+        vocab_dict["|"] = vocab_dict[" "]
+        del vocab_dict[" "]
+
+        vocab_dict["[UNK]"] = len(vocab_dict)
+        vocab_dict["[PAD]"] = len(vocab_dict)
+        
+        print(len(vocab_dict))
+        print(vocab_dict)
+
+        with open('vocab.%s.json' % language, 'w') as vocab_file:
+            json.dump(vocab_dict, vocab_file)
+
+        print ("\nCreating array from speech files")
+        common_voice_train = common_voice_train.map(speech_file_to_array_fn, remove_columns=common_voice_train.column_names)
+        common_voice_test = common_voice_test.map(speech_file_to_array_fn, remove_columns=common_voice_test.column_names)
+
+        print ("\nDownsampling all speech files")
+        common_voice_train = common_voice_train.map(resample, num_proc=8)
+        common_voice_test = common_voice_test.map(resample, num_proc=8)
+        
+        print ("\nConstructing tokenizer")
+        tokenizer = Wav2Vec2CTCTokenizer("./vocab.%s.json" % language, unk_token="[UNK]", pad_token="[PAD]", word_delimiter_token="|")
+
+        print ("\nFeature Extractor") 
+        feature_extractor = Wav2Vec2FeatureExtractor(feature_size=1, sampling_rate=16000, padding_value=0.0, do_normalize=True, return_attention_mask=True)
+
+        print ("\nConstructing Processor")
+        processor = Wav2Vec2Processor(feature_extractor=feature_extractor, tokenizer=tokenizer)
+        processor.save_pretrained(output_dir)
+
+        print ("\nPreparing the training dataset")
+        common_voice_train = common_voice_train.map(prepare_dataset, remove_columns=common_voice_train.column_names, batch_size=8, num_proc=4, batched=True)
+
+        print ("\nPreparing test set")
+        common_voice_test = common_voice_test.map(prepare_dataset, remove_columns=common_voice_test.column_names, batch_size=8, num_proc=4, batched=True)
+
+        common_voice_train.save_to_disk(training_dataset_dir_path)
+        common_voice_test.save_to_disk(test_dataset_dir_path)
     
-    print(len(vocab_dict))
-    print(vocab_dict)
-
-    with open('vocab.%s.json' % language, 'w') as vocab_file:
-        json.dump(vocab_dict, vocab_file)
-
-    print ("\nConstructing tokenizer")
-    tokenizer = Wav2Vec2CTCTokenizer("./vocab.%s.json" % language, unk_token="[UNK]", pad_token="[PAD]", word_delimiter_token="|")
-
-    print ("\nFeature Extractor") 
-    feature_extractor = Wav2Vec2FeatureExtractor(feature_size=1, sampling_rate=16000, padding_value=0.0, do_normalize=True, return_attention_mask=True)
-
-    print ("\nConstructing Processor")
-    processor = Wav2Vec2Processor(feature_extractor=feature_extractor, tokenizer=tokenizer)
-    processor.save_pretrained(output_dir)
-
-    print ("\nCreating array from speech files")
-    common_voice_train = common_voice_train.map(speech_file_to_array_fn, remove_columns=common_voice_train.column_names)
-    common_voice_test = common_voice_test.map(speech_file_to_array_fn, remove_columns=common_voice_test.column_names)
-    
-    print ("\nDownsampling all speech files")
-    common_voice_train = common_voice_train.map(resample, num_proc=8)
-    common_voice_test = common_voice_test.map(resample, num_proc=8)
-
-    print ("\nPreparing the training dataset")
-    common_voice_train = common_voice_train.map(prepare_dataset, remove_columns=common_voice_train.column_names, batch_size=8, num_proc=4, batched=True)
-
-    print ("\nPreparing test set")
-    common_voice_test = common_voice_test.map(prepare_dataset, remove_columns=common_voice_test.column_names, batch_size=8, num_proc=4, batched=True)
 
     print ("\nSetting up data collator")
     data_collator = DataCollatorCTCWithPadding(processor=processor, padding=True)
@@ -243,6 +273,9 @@ def train(output_dir, language, train=True):
     # see https://huggingface.co/transformers/model_doc/wav2vec2.html?highlight=mask_time_prob#transformers.Wav2Vec2Config
     model = Wav2Vec2ForCTC.from_pretrained(
         "facebook/wav2vec2-large-xlsr-53",
+        #"facebook/wav2vec2-xls-r-300m",
+        #"facebook/wav2vec2-xls-r-1b",
+        #"facebook/wav2vec2-xls-r-2b",
         activation_dropout=0.055,
         attention_dropout=0.055,
         hidden_dropout=0.047,
@@ -255,23 +288,26 @@ def train(output_dir, language, train=True):
         vocab_size=len(processor.tokenizer)
     )
 
-    model.freeze_feature_extractor()
+    model.freeze_feature_encoder()
+
 
     # see https://huggingface.co/transformers/main_classes/trainer.html?highlight=group_by_length#transformers.TrainingArguments
     training_args = TrainingArguments(
         output_dir=output_dir,
         group_by_length=True,
-        per_device_train_batch_size=48,
+        auto_find_batch_size=True,
+        #per_device_train_batch_size=64,
         gradient_accumulation_steps=2,
         evaluation_strategy="steps",
         num_train_epochs=30,
-        save_steps=400,
-        eval_steps=400,
-        logging_steps=400,
+        save_steps=200,
+        eval_steps=200,
+        logging_steps=200,
         learning_rate=3e-4,
-        warmup_steps=400,
-        save_total_limit=1,
-        logging_dir='/logs'
+        warmup_steps=800,
+        save_total_limit=5,
+        save_strategy='steps',
+        logging_dir=logging_dir
     )
 
     print ("\nConstructing trainer")
@@ -286,10 +322,14 @@ def train(output_dir, language, train=True):
     )
 
     print ("\nTraining...")
+    print ("See: %s" % output_dir)
     trainer.train()
 
+    print ("\n\n")
+
     # copy config and model binary file
-    publish.export_checkpoint(output_dir)
+    #publish.export_checkpoint(output_dir)
+    trainer.save_model()
 
     print ("\n\nModel trained. See %s" % output_dir)
 

@@ -38,9 +38,10 @@ class SpeechToTextAPI(object):
     def versions(self):
         result = {
             'version': 1,
-            'model_name': self.stt.acoustic_model,
-            'language_model_name': self.stt.language_model,
-            'model_version': self.stt.model_version 
+            'model_name': self.stt.get_model_name(),
+            'language_model_name': self.stt.get_language_model(),
+            'model_version': self.stt.get_model_version(),
+            'device': self.stt.get_device()
         }
         return result
 
@@ -56,7 +57,7 @@ class SpeechToTextAPI(object):
                     break
                 wavfile.write(data)
 
-        #cherrypy.log("tmp file written to %s" % upload_tmp_filepath)
+        cherrypy.log("tmp file written to %s" % upload_tmp_filepath)
 
         result = {
             'version':1
@@ -91,7 +92,9 @@ class SpeechToTextAPI(object):
             'transcripts': transcripts 
         })
 
-        Path(upload_tmp_filepath).unlink()
+        cherrypy.log(str(result))
+
+        #Path(upload_tmp_filepath).unlink()
 
         return result
 
