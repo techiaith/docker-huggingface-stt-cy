@@ -1,0 +1,6 @@
+homedir
+models
+data
+logs
+python/cv_version.py
+*.csv

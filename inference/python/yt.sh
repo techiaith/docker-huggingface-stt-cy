@@ -28,6 +28,4 @@ set -x
 youtube-dl --extract-audio --audio-format mp3 https://www.youtube.com/watch?v=$1
 ffmpeg -i *.mp3 -vn -acodec pcm_s16le -ar 16000 -ac 1 /recordings/$1.wav
 rm *.mp3
-python3 transcriber.py -w /recordings/$1.wav
-
-
+python3 transcriber.py -w /recordings/$1.wav -s /recordings/$1.srt

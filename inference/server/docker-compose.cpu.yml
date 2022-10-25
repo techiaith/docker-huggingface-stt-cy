@@ -1,0 +1,47 @@
+version: "3.1"
+
+services:
+
+  application:
+     image: techiaith/wav2vec2-server
+     container_name: techiaith-wav2vec2-server
+     restart: always
+     build:
+       context: ${PWD}/app
+       dockerfile: Dockerfile
+     ports:
+       - "5511:8008"
+     volumes: 
+       - ${PWD}/recordings:/recordings
+       - ${PWD}/logs:/var/log/wav2vec2
+
+
+  worker:
+    image: techiaith/techiaith-wav2vec2-worker
+    container_name: techiaith-wav2vec2-worker
+    restart: always
+    build:
+      context: ${PWD}/worker
+      dockerfile: Dockerfile
+    volumes: 
+       - ${PWD}/recordings:/recordings
+       - ${PWD}/logs:/var/log/wav2vec2
+    depends_on:
+      - rabbitmq
+      - redis
+      
+
+  rabbitmq:
+    image: bitnami/rabbitmq:3.9.24
+    container_name: techiaith-wav2vec2-server-broker-rabbitmq
+    restart: always
+
+
+  redis:
+    image: redis:7.0.5
+    container_name: techiaith-wav2vec2-server-backend-redis 
+    restart: always
+    volumes:
+       - ${PWD}/redis_data:/data
+
+

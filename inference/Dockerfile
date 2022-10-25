@@ -1,4 +1,16 @@
-FROM techiaith/wav2vec2-xlsr-ft-cy-device
+FROM techiaith/wav2vec2-inference-device
+
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe/London
+
+RUN apt update -q \
+ && apt install -y -qq tzdata bash build-essential git curl wget software-properties-common \
+    vim ca-certificates libffi-dev libssl-dev libsndfile1 libbz2-dev liblzma-dev locales \
+    libboost-all-dev libboost-tools-dev libboost-thread-dev cmake  \
+    python3 python3-pip python3-setuptools python3-dev curl zip zlib1g-dev vim \
+    ffmpeg sox alsa-utils \
+ && python3 -m pip install --upgrade pip
+
 
 # gosod YouTube downloader
 RUN wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl \
@@ -36,3 +48,5 @@ RUN git clone --recursive https://github.com/parlance/ctcdecode.git /tmp/ctcdeco
 COPY python /wav2vec2/
 COPY speech.wav /wav2vec2/
 
+RUN mkdir -p /models
+RUN python3 transcriber.py -w speech.wav

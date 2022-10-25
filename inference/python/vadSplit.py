@@ -1,6 +1,9 @@
+import os
+import wave
 import collections
 import contextlib
-import wave
+
+from pydub import AudioSegment
 
 AudioFormat = collections.namedtuple('AudioFormat', 'rate channels width')
 
@@ -73,7 +76,7 @@ def split(audio_frames,
           num_padding_frames=10,
           threshold=0.5,
           aggressiveness=3):
-
+ 
     from webrtcvad import Vad  # pylint: disable=import-outside-toplevel
 
     if audio_format.channels != 1:
@@ -88,7 +91,7 @@ def split(audio_frames,
 
     if aggressiveness not in [0, 1, 2, 3]:
         raise ValueError(
-            'VAD-splitting aggressiveness mode has to be one of 0, 1, 2, or 3')
+            'VAD-splitting aggressiveness mode %s has to be one of 0, 1, 2, or 3' % aggressiveness)
 
     ring_buffer = collections.deque(maxlen=num_padding_frames)
     triggered = False
@@ -117,12 +120,54 @@ def split(audio_frames,
             if num_unvoiced > threshold * ring_buffer.maxlen:
                 triggered = False
                 yield b''.join(voiced_frames), \
-                      frame_duration_ms * max(0, frame_index - len(voiced_frames)), \
+                      frame_duration_ms * max(0, frame_index - (len(voiced_frames)-1)), \
                       frame_duration_ms * frame_index
                 ring_buffer.clear()
                 voiced_frames = []
     if len(voiced_frames) > 0:
         yield b''.join(voiced_frames), \
-              frame_duration_ms * (frame_index - len(voiced_frames)), \
+              frame_duration_ms * (frame_index - (len(voiced_frames)-1)), \
               frame_duration_ms * (frame_index + 1)
+
+
+
+class VadSplit:
+
+
+    def split_audio_file(self, audio_file_path, aggressiveness=0, offset=0.0):
+
+        #print ("\nVadSpliting {} with aggressiveness {} ".format(audio_file_path, aggressiveness))
+
+        frames = read_frames_from_file(audio_file_path)
+        for audio_segment in split(frames, aggressiveness=aggressiveness):
+            audio_segment_buffer, audio_segment_time_start, audio_segment_time_end = audio_segment
+
+            root_audio_segment_time_start = audio_segment_time_start + offset
+            root_audio_segment_time_end = audio_segment_time_end + offset
+
+            audio_segment_duration = root_audio_segment_time_end - root_audio_segment_time_start
+
+            # split (if possible) with a higher aggressiveness if the segment is longer than 15 seconds...
+            if audio_segment_duration / 1000 > 15.0 and aggressiveness < 3:
+
+                #print ("audio_segment_duration too long (s) {} {} {}, {}".format(audio_segment_time_start, audio_segment_time_end, audio_segment_duration, aggressiveness))
+
+                tmp_chunk_file_path = os.path.join("/tmp", "chunk_{}_{}.wav".format(round(root_audio_segment_time_start), round(root_audio_segment_time_end)))
+
+                wav_audio_file_segment = AudioSegment.from_wav(audio_file_path)
+                wav_segment = wav_audio_file_segment[audio_segment_time_start:audio_segment_time_end]
+                wav_segment.export(tmp_chunk_file_path, format='wav')
+
+                for smaller_audio_segment in self.split_audio_file(tmp_chunk_file_path, aggressiveness+1, audio_segment_time_start):
+                    smaller_audio_segment_buffer, smaller_audio_segment_time_start, smaller_audio_segment_time_end = smaller_audio_segment
+                    
+                    smaller_audio_segment_time_start += offset;
+                    smaller_audio_segment_time_end += offset;
+                    smaller_audio_segment_duration = smaller_audio_segment_time_end - smaller_audio_segment_time_start
+
+                    #print ("yielding smaller...", smaller_audio_segment_time_start, smaller_audio_segment_time_end, smaller_audio_segment_duration, aggressiveness)
+                    yield smaller_audio_segment_buffer, smaller_audio_segment_time_start, smaller_audio_segment_time_end
+            else:
+                #print ("yielding...", root_audio_segment_time_start, root_audio_segment_time_end, audio_segment_duration, aggressiveness)
+                yield audio_segment_buffer, root_audio_segment_time_start, root_audio_segment_time_end
 

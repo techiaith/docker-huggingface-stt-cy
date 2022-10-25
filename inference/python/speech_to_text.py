@@ -13,41 +13,46 @@ import json
 import models
 
 from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
-from vadSplit import read_frames_from_file, split
+from vadSplit import VadSplit
 
 from ctcdecode import CTCBeamDecoder
 
 
 DESCRIPTION = """
 
-© Prifysgol Bangor University
+(c) Prifysgol Bangor University
 
 """
 
 class SpeechToText:
 
-    def __init__(self, models_root_dir='', wav2vec2_model_path='', version='', language_model_path='', ctc_with_lm=False):
+    def __init__(self, models_root_dir='', wav2vec2_model_path='', version='', language_model_path='', split_only=False):
 
-        if len(wav2vec2_model_path)==0:
-            self.wav2vec2_model_path = os.environ["WAV2VEC2_MODEL_NAME"]
+        self.split_only = split_only
 
-        # @todo - improve. 
-        if len(language_model_path)==0:
-            self.language_model_path = os.path.join(os.environ["WAV2VEC2_MODEL_NAME"], "kenlm")
+        print ("split_only: ", split_only)
+        
+        if self.split_only==False:
+            if len(wav2vec2_model_path)==0:
+                self.wav2vec2_model_path = os.environ["WAV2VEC2_MODEL_NAME"]
 
-        #
-        if len(version)==0:
-            self.version=os.environ["MODEL_VERSION"]
-        
-        #
-        self.processor, self.model, self.vocab, self.ctcdecoder, self.kenlm_ctcdecoder = models.create(self.wav2vec2_model_path, self.version)
-        
-        self.device = "cpu"
-        if torch.cuda.is_available():
-            self.device="cuda"
-            self.model.cuda()
-        
-        print ("wav2vec loaded to device %s" % self.device)
+            # @todo - improve. 
+            if len(language_model_path)==0:
+                self.language_model_path = os.path.join(os.environ["WAV2VEC2_MODEL_NAME"], "kenlm")
+
+            #
+            if len(version)==0:
+                self.version=os.environ["MODEL_VERSION"]
+            
+            #
+            self.processor, self.model, self.vocab, self.ctcdecoder, self.kenlm_ctcdecoder = models.create(self.wav2vec2_model_path, self.version)
+            
+            self.device = "cpu"
+            if torch.cuda.is_available():
+                self.device="cuda"
+                self.model.cuda()
+            
+            print ("wav2vec loaded to device %s" % self.device)
 
 
 
@@ -59,9 +64,10 @@ class SpeechToText:
 
     def get_model_version(self):
         return self.version
-    
+   
     def get_device(self):
         return self.device
+
 
     def split_frames(self, frames, aggressiveness):
         
@@ -81,19 +87,27 @@ class SpeechToText:
                 yield audio_segment_buffer, audio_segment_time_start, audio_segment_time_end
 
 
-    def transcribe(self, wav_file_path, max_segment_length=8, max_segment_words=14, withlm=False):
+    def transcribe(self, wav_file_path, max_segment_length=15, max_segment_words=14, withlm=False):
         
-        print ("Transcribing: %s" % wav_file_path)
+        print ("Processing: %s" % wav_file_path)
 
         wav_audio, rate = librosa.load(wav_file_path, sr=16000)
 
         time_start = 0.0
         time_end = librosa.get_duration(y=wav_audio,sr=rate)
         
-        frames = read_frames_from_file(wav_file_path)        
-        for audio_segment in self.split_frames(frames, aggressiveness=1):
-            
+        vadSplitter = VadSplit()
+        for audio_segment in vadSplitter.split_audio_file(wav_file_path):
             audio_segment_buffer, audio_segment_time_start, audio_segment_time_end = audio_segment
+            if self.split_only==True:
+                yield "", audio_segment_time_start, audio_segment_time_end, None
+            else:
+                # Run stt on the chunk that just completed VAD
+                audio = np.frombuffer(audio_segment_buffer, dtype=np.int16)
+
+            # timings into seconds. 
+            audio_segment_time_start = audio_segment_time_start / 1000
+            audio_segment_time_end = audio_segment_time_end / 1000
 
             # Run stt on the chunk that just completed VAD
             audio = np.frombuffer(audio_segment_buffer, dtype=np.int16)
@@ -104,18 +118,20 @@ class SpeechToText:
 
             transcription, alignment, timesteps = self.ctc_decode(logits, withlm) 
             
+            #
+            # for when voice activated splitting fails to ensure no split/segment is more than 
+            # a set number of seconds, we can use the alignments from the CTC results to 
+            # produce segments with a given time and/or word count. 
+            # 
             timestep_length = (audio_segment_time_end - audio_segment_time_start) / timesteps
             for a in alignment:
                 a[1] = ((a[1] * timestep_length) + audio_segment_time_start)
-
-            aligned_words = self.aligned_words(alignment, timestep_length)
+                aligned_words = self.aligned_words(alignment, timestep_length)
 
             if len(aligned_words) > 0:
                 for transcription, seg_start, seg_end, seg_alignment in self.segment(aligned_words, max_segment_length, max_segment_words):                    
                     yield transcription, seg_start, seg_end, seg_alignment
-
-
-
+            
 
     def ctc_decode(self, logits, withlm):
 
@@ -210,3 +226,4 @@ class SpeechToText:
                 segment_alignments.append(a)
                     
         yield segment_text, segment_start, segment_end, segment_alignments
+

@@ -1,35 +1,21 @@
 default: build
 
+$(eval DEVICE = cpu)
+#$(eval DEVICE = gpu)
+
 
 config:	
-	$(eval PORT_NUMBER = 5511)
+	$(eval DOCKER_COMPOSE = docker compose -f docker-compose.${DEVICE}.yml)
 
-
-build: config
-	docker build --rm -t techiaith/wav2vec2-xlsr-ft-server-cy .
-
-
-run: config
-	mkdir -p ${PWD}/log/
+up: config
+	sudo rm -rf ${PWD}/logs
+	mkdir -p ${PWD}/logs/
 	mkdir -p ${PWD}/recordings/
-	docker run --gpus all --name techiaith-wav2vec2-xlsr-ft-server-cy \
-		--restart=always \
-		-it -d -p ${PORT_NUMBER}:8008 \
-		-v ${PWD}/recordings/:/recordings \
-		-v ${PWD}/../models/:/models \
-		-v ${PWD}/log/:/var/log/wav2vec2 \
-		techiaith/wav2vec2-xlsr-ft-server-cy
+	mkdir -p ${PWD}/redis_data/
+	${DOCKER_COMPOSE} up -d --build && ${DOCKER_COMPOSE} logs -f
 
 
-bash: config
-	docker exec -it techiaith-wav2vec2-xlsr-ft-server-cy bash
+down: config
+	${DOCKER_COMPOSE} down
 
 
-stop: config
-	-docker stop techiaith-wav2vec2-xlsr-ft-server-cy
-	-docker rm techiaith-wav2vec2-xlsr-ft-server-cy
-	rm -rf ${PWD}/log
-
-
-clean: config stop
-	-docker rmi techiaith/wav2vec2-xlsr-ft-server-cy

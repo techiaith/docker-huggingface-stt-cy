@@ -16,3 +16,4 @@ pydub
 pandas
 python_speech_features
 scipy
+ffmpeg-normalize

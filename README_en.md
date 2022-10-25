@@ -1,33 +1,19 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5270295.svg)](https://doi.org/10.5281/zenodo.5270295)
 
-# docker-wav2vec2-xlsr-ft-cy
+# docker-wav2vec2-cy
 
 [(cliciwch yma os hoffwch ddarllen y README Cymraeg)](README.md)
 
- - [Training your own models](#training)
- - [Host a speech recognition server](#speech-recognition-server)
+The project develops and provides Welsh and bilingual speech recognition using the wav2vec2 method [1], [2] and [3]. Data from Mozilla Common Voice Cymraeg has been mainly used, with the scripts of this project, to create models that transcribe any Welsh (and English) speech fairly accurately. You can download the models in order to use speech recognition on your computer or within your own software projects.
 
+## How to Use the Welsh speech recognition models
 
-## Training
+The resources in the 'inference' folder make it easy to use models that have already been trained to transcribe Welsh speech with small or large audio files or even with videos such as on YouTube. Visit [inference/README_en.md](inference/README.md) for more information.
 
-This repository provides a Docker environment for training or fine-tuning
-pre-trained multilingual (wav2vec2) acoustic models by Facebook AI and 
-HuggingFace that implements Welsh language speech recognition (see (gweler [train/README.md](train/README_en.md))
+## Training your own models
 
-This repository also provides a means to train and utilise KenLM based language models that significantly improves recognition results. 
-
-The Welsh language dataset from Common Voice is used for fine tuning the acoustic model and for testing. The Welsh text corpus by the OSCAR project was used for training the language model.
-
-Evaluating both models on the Welsh Common Voice test set gives a [word error rate of 15%](train/README_en.md#evaluation)
-
-## Speech Recognition server
-
-This repository also contains a simple API server implementation for hosting your trained models locally or online, or for hosting models trained by Bangor University's Language Technologies Unit. 
-
-Go to [server/README.md](server/README_en.md) for more information.
-
-The models can be found in action in a transcription service website - Trawsgrifiwr Ar-lein (https://trawsgrifiwr.techiaith.cymru)
+The resources in the 'train' folder facilitate the training or refinement of acoustic models. The scripts also include a way to train language models in order to improve the accuracy of transcription results. See [train/README_en.md](train/README.md) for more information.
 
 ## Acknowledgements
 
@@ -47,6 +33,7 @@ Rosana Ardila, Megan Branson, Kelly Davis, Michael Henretty, Michael Kohler, Jos
 
 Pedro Javier Ortiz Suárez, Benoît Sagot, and Laurent Romary 2019. *Asynchronous pipelines for processing huge corpora on medium to low resource infrastructures.* In CMLC-7 (pp. 9 – 16). Leibniz-Institut für Deutsche Sprache.
 
+
 ## Acknowledging our work
 
 If you use this resource, we kindly ask you to acknowledge and reference our work. Doing so helps us secure future funding to create more useful resources to share.
@@ -54,13 +41,11 @@ If you use this resource, we kindly ask you to acknowledge and reference our wor
 ```
 @software{dewi_bryn_jones_2021_5270295,
   author       = {Dewi Bryn Jones},
-  title        = {{GitHub Repository: techiaith/docker-wav2vec2-xlsr- 
-                   ft-cy Speech recognition for Welsh with fine tuned
-                   wav2vec2 XLSR and KenLM language models.}},
+  title        = {{GitHub Repository: techiaith/docker-wav2vec2-cy Speech recognition for Welsh with wav2vec2.}},
   month        = aug,
-  year         = 2021,
+  year         = 2022,
   publisher    = {Zenodo},
-  version      = {21.08},
+  version      = {22.10},
   doi          = {10.5281/zenodo.5270295},
   url          = {https://doi.org/10.5281/zenodo.5270295}
 }

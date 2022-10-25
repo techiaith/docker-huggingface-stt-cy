@@ -1,0 +1,6 @@
+transformers==4.21.0
+datasets == 2.4.0
+torchaudio
+accelerate == 0.12.0
+librosa
+tensorboard
