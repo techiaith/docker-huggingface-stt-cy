@@ -74,3 +74,30 @@ ID      Start   End     Transcript
 
 
 The server provides a very simple HTML GUI in order to use/support the above API. Go to http://localhost:5511/static_html/index.hml
+
+## Restore capitalization and punctuation
+
+Results from the speech recognition model are always in lowercase letters and do not contain any type of punctuation marks such question marks, full stops, colons etc. such as in the example transcription result above - "mae ganddynt dau o blant mab a merch". Therefore, it's now possible to connect the transcription server with a punctuation server that you may have installed from our other project on GitHub - see https://github.com/techiaith/docker-atalnodi-server. 
+
+Simply install the punctuation server and enter its web address (such as http://localhost:5555/restore) into a new file named `external_api_urls.py` in the `worker` folder. E.g.
+
+```python
+$ cat worker/external_api_urls.py
+PUNCTUATION_API_URL = "http://localhost:5555/restore"
+````
+
+Restart your speech recognition server..
+
+```shell
+$ make down
+$ make up
+```
+
+The result of testing the API with the `speech.wav` file will this time give a transcription that is capitalized and punctuated:
+
+```
+$ curl localhost:5511/get_srt/?stt_id=.....
+1
+00:00:00,619 --> 00:00:05,170
+Mae ganddynt ddau o blant, mab a merch.
+```

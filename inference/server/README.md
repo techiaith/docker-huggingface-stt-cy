@@ -72,3 +72,31 @@ ID      Start   End     Transcript
 ```
 
 Mae'r gweinydd yn darparu GUI HTML syml iawn hefyd er mwyn defnyddio/cefnogi'r API uchod. Ewch i http://localhost:5511/static_html/index.hml
+
+
+## Atgyweirio priflythrennau ac atalnodi
+
+Mae canlyniadau o'r model adnabod lleferydd cyson mewn llythrennau bach sydd heb unrhyw fath o atalnodi fel marc cwestiwn, atalnod llawn, cyplysnodau ayb fel yn yr enghraifft uchod - "mae ganddynt ddau o blant mab a merch". Mae modd cysylltu'r gweinydd trawsgrifio gyda weinydd atalnodi (o'n project arall at GitHub - https://github.com/techiaith/docker-atalnodi-server).
+
+Gosodwch y weinydd atalnodi a nodwch ei cyfeiriad we (fel http://localhost:5555) a nodwch yr URL o fewn ffeil newydd o'r enw `external_api_urls.py` yn y ffolder `worker`. E.e. 
+
+```python
+$ cat worker/external_api_urls.py
+PUNCTUATION_API_URL = "http://localhost:5555/restore"
+````
+
+Ac ail-gychwynwch y gweinydd drwy 
+
+```shell
+$ make down
+$ make up
+```
+
+Bydd y canlyniad i'r profi'r API gyda'r ffeil `speech.wav` yn rhoi testun sydd wedi ei briflythrennu a'i hatalnodi:
+
+```
+$ curl localhost:5511/get_srt/?stt_id=.....
+1
+00:00:00,619 --> 00:00:05,170
+Mae ganddynt ddau o blant, mab a merch.
+```
