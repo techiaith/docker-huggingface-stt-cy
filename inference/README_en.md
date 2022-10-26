@@ -107,6 +107,45 @@ Textgrid of transcription saved to /recordings/OpiwHxPPqRI.TextGrid
 root@413c6994d668:/wav2vec2# 
 ```
 
+## Python Scripts 
+
+The models can be used within a simple Python script like the following.
+
+**D.S.** this example does not use a language model to improve the accuracy of speech recognition results.
+
+### Dependencies
+
+```shell
+$ python3 -m pip install -r python/requirments.txt
+```
+
+### Example Python code
+
+```python
+import torch
+import librosa
+import torchaudio
+
+from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
+
+processor = Wav2Vec2Processor.from_pretrained("techiaith/wav2vec2-xlsr-ft-cy")
+model = Wav2Vec2ForCTC.from_pretrained("techiaith/wav2vec2-xlsr-ft-cy")
+
+audio, rate = librosa.load(<path/to/wav/audiofile>, sr=16000)
+
+inputs = processor(audio, sampling_rate=16_000, return_tensors="pt", padding=True)
+
+with torch.no_grad():
+  logits = model(inputs.input_values, attention_mask=inputs.attention_mask).logits
+
+# greedy decoding
+predicted_ids = torch.argmax(logits, dim=-1)
+
+print("Prediction:", processor.batch_decode(predicted_ids))
+
+```
+
+
 ## Warning
 
 Please note that transcription results will not always be totally correct. The work on measuring and improving the models' capabilities is ongoing work. See our [evaluation results for various models](../train/fine-tune/README_en.md#evaluation)

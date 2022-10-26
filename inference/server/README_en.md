@@ -4,14 +4,8 @@
 
 ## Background
 
-If you would like to install and use a wav2vec2 speech recognition engine locally
-on your own computer, instead of using the API service at https://api.techiaith.org/en/
-then the resources in this folder can help you. 
+If are concerned about the privacy of any online Welsh speech recognition API, such as by techiaith at https://api.techiaith.org/en, then the contents of this folder can help you install and use your own local installation. 
 
-**N.B.** - wav2vec2 models are quite large, therefore you will need plenty of memory
-in your computer. If you don't have enough memory, but would still like to run locally
-your own Welsh speech recognition engine, then smaller models based on Mozilla
-DeepSpeech are available - https://github.com/techiaith/docker-deepspeech-cy-server
 
 ## Install
 

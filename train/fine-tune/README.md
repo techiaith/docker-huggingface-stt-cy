@@ -28,7 +28,7 @@ Er mwyn llwytho i lawr data Common Voice, mae angen i chi greu ffeil Python i gy
 
 Yna i ddechrau hyfforddi, dewisich unrhyw un o'r pedwar sgript "run"
 
-`root@bff0be8425ea:/usr/src/xlsr-finetune# ./run_xlsr-large-53.sh`
+`root@d702159be82f:/xlsr-ft-train# ./run_xlsr-large-53.sh`
 
 Yn dibynnu ar y cerdyn graffics, bydd yn gymryd rhai oriau i hyfforddi. 
 
