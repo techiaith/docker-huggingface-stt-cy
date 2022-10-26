@@ -1,5 +1,7 @@
 # Rhag hyfforddi modelau adnabod lleferydd 
 
+[(**click here to read the README in English**)](README_en.md)
+
 Ar y moment, mae'r modelau adnabod lleferydd Cymraeg gorau o'r repo hwn wedi eu creu drwy fireinio modelau mae Facebook/Meta AI wedi eu rhag-hyfforddi o sain leferydd wahanol ieithoedd, gan gynnwys mymryn o Gymraeg, yn unig (h.y. heb angen trawsgrifiadau hefyd). Yn y papur gwreiddiol ar y dull wav2vec2 ["wav2vec2: A Framework for Self-Supervised Learning of Speech Representations](https://arxiv.org/abs/2006.11477) gan Alexei Baevski, Henry Zhou, Abdelrahman Mohamed a Michael Auli, profwyd bod modd cael WER cyn lleied â 4.8 ar set profi Saesneg LibriSpeech ar ôl rhag-hyfforddi ar 53,000 awr o sain lleferydd Saesneg yn unig. Yn y ffolder hwn rydym am greu sgriptiau i greu modelau sylfaenol penodol i’r Gymraeg mewn ymgais i ostwng sgorau WER hyd yn oed ymhellach.
 
 Mae'r gwaith yn defnyddio lawer ar adnoddau a dogfennaeth gan y cwmni HuggingFace:  

@@ -3,8 +3,8 @@
 #
 export CV_CONFIG_FILE='cv_version_11_cy'
 
-# 
-pre_trained_model='/models/wav2vec2-base-cy'
+#
+pre_trained_model='techiaith/wav2vec2-base-cy'
 
 session_date=$(date '+%Y-%m-%d_%H:%M:%S')
 session_name=${pre_trained_model//\//_}__${session_date}
