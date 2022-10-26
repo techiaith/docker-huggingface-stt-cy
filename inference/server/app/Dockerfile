@@ -1,4 +1,4 @@
-FROM techiaith/wav2vec2-inference
+FROM techiaith/wav2vec2-inference-cpu
 
 RUN mkdir -p /var/log/wav2vec2
 

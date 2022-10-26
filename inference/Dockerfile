@@ -9,7 +9,8 @@ RUN apt update -q \
     libboost-all-dev libboost-tools-dev libboost-thread-dev cmake  \
     python3 python3-pip python3-setuptools python3-dev curl zip zlib1g-dev vim \
     ffmpeg sox alsa-utils \
- && python3 -m pip install --upgrade pip
+ && python3 -m pip install --upgrade pip \
+ && apt clean -q
 
 
 # gosod YouTube downloader
@@ -18,10 +19,10 @@ RUN wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube
 
 #
 ARG MODEL_VERSION
-ARG WAV2VEC2_MODEL_NAME
+ENV MODEL_VERSION=${MODEL_VERSION}
 
 #
-ENV MODEL_VERSION=${MODEL_VERSION}
+ARG WAV2VEC2_MODEL_NAME
 ENV WAV2VEC2_MODEL_NAME=${WAV2VEC2_MODEL_NAME}
 
 # Set the locale

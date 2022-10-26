@@ -6,9 +6,8 @@ $(eval DEVICE = cpu)
 config:
 	# to use a local model, provide the full /models/.... path for WAV2VEC2_MODEL_NAME and 
 	# leave the MODEL_VERSION blank empty string.
-	#$(eval WAV2VEC2_MODEL_NAME = techiaith/wav2vec2-xlsr-ft-cy)
-	$(eval WAV2VEC2_MODEL_NAME = techiaith/wav2vec2-xls-r-1b-ft-cy)
-	$(eval WAV2VEC2_MODEL_VERSION = 22.06)
+	$(eval WAV2VEC2_MODEL_NAME = techiaith/wav2vec2-xlsr-ft-cy)
+	$(eval WAV2VEC2_MODEL_VERSION = 22.10)
 	mkdir -p ${PWD}/data/
 	mkdir -p ${PWD}/tmp/
 
@@ -16,7 +15,7 @@ config:
 
 build: config
 	docker build --rm -f Dockerfile.${DEVICE} -t techiaith/wav2vec2-inference-device .
-	docker build --rm -t techiaith/wav2vec2-inference \
+	docker build --rm -t techiaith/wav2vec2-inference-${DEVICE} \
 		--build-arg WAV2VEC2_MODEL_NAME=${WAV2VEC2_MODEL_NAME} \
 		--build-arg MODEL_VERSION=${WAV2VEC2_MODEL_VERSION} \
 		.
@@ -29,7 +28,7 @@ run-gpu:
 		-it \
 		-v ${PWD}/data/:/data \
 		-v ${PWD}/tmp/:/tmp \
-                techiaith/wav2vec2-inference
+                techiaith/wav2vec2-inference-${DEVICE}
 
 
 run-cpu:
@@ -38,7 +37,7 @@ run-cpu:
 		-it \
 		-v ${PWD}/data/:/data \
 		-v ${PWD}/tmp/:/tmp \
-                techiaith/wav2vec2-inference
+                techiaith/wav2vec2-inference-${DEVICE}
 
 
 stop: config
@@ -47,5 +46,5 @@ stop: config
 
 
 clean: config stop
-	-docker rmi techiaith/wav2vec2-inference
+	-docker rmi techiaith/wav2vec2-inference-${DEVICE}
 

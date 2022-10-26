@@ -1,4 +1,4 @@
-FROM techiaith/wav2vec2-inference
+FROM techiaith/wav2vec2-inference-cpu
 
 RUN git clone https://github.com/marian-nmt/moses-scripts.git /usr/local/bin/moses-scripts
 

@@ -17,8 +17,8 @@ services:
 
 
   worker:
-    image: techiaith/techiaith-wav2vec2-worker
-    container_name: techiaith-wav2vec2-worker
+    image: techiaith/techiaith-wav2vec2-worker-cpu
+    container_name: techiaith-wav2vec2-worker-cpu
     restart: always
     build:
       context: ${PWD}/worker
