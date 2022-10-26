@@ -1,30 +1,26 @@
 # How to Use the wav2vec2 Welsh Language Speech Recognition Models.
 
-[(cliciwch yma os hoffwch ddarllen y README Cymraeg)](README.md)
+[**(cliciwch yma os hoffwch ddarllen y README Cymraeg)**](README.md)
 
 ## Background
 
-If you would like to install and use a wav2vec2 speech recognition engine locally
-on your own computer, instead of using the API service at https://api.techiaith.org/en/ or the [Trawsgrifiwr Ar-lein transcription service website](https://trawsgrifiwr.techiaith.cymru) then the resources in this folder can help you. 
+There are several methods for using the speech recognition models from this project on your own system, including
 
-There are two possible ways to use the speech recognition locally, ether from the command line or as a server. Visit [server/README_en.md](server/README_en.md) to read how to install your own speech recognition server. This README will explain how to use the speech recognition machine from the command line.
-
-**N.B.** - wav2vec2 models are quite large, therefore you will need plenty of memory
-in your computer. If you don't have enough memory, but would still like to run locally
-your own Welsh speech recognition engine, then smaller models based on Mozilla
-DeepSpeech are available - https://github.com/techiaith/docker-deepspeech-cy-server
+  - from your own computer's command line
+  - within your own Python code
+  - from an API on your own local server - see [server/README.md](server/README.md)
 
 ## Install
 
 ```
-$ git clone https://github.com/techiaith/docker-wav2vec2-xlsr-ft-cy
-$ cd docker-wav2vec2-xlsr-ft-cy/inference
+$ git clone https://github.com/techiaith/docker-wav2vec2-cy
+$ cd docker-wav2vec2-xlsr-cy/inference
 $ make
 ```
 
-The build process fetches models that have been pretrained by Bangor University's Language Technologies Unit.
+The build process fetches speech recognition models that have been pretrained by Bangor University's Language Technologies Unit.
 
-## Use
+## How to Use
 
 Get started by using..
 
@@ -32,7 +28,7 @@ Get started by using..
 $ make run
 ```
 
-A new command line prompt will appear where you can use the scripts `decode.py` or `transcribe.py` to convert files of speech audio into text. For example...
+A new command line prompt will appear where you can use the scripts `decode.py` or `transcribe.py` scripts to convert speech audio files into text. For example...
 
 ```shell
 root@a20d8f23cb0f:/wav2vec2# python3 decode.py --wav speech.wav 
@@ -53,7 +49,7 @@ Initialising ctc with lm decoder...
 mae ganddynt ddau o blant mab a merch 0.6109205020920503 5.169916317991632 [{'word': 'mae', 'start': 0.6109205020920503, 'end': 0.7715899581589959}, {'word': 'ganddynt', 'start': 0.8117573221757324, 'end': 1.4544351464435148}, {'word': 'ddau', 'start': 1.6151046025104603, 'end': 2.077029288702929}, {'word': 'o', 'start': 2.137280334728034, 'end': 2.17744769874477}, {'word': 'blant', 'start': 2.2376987447698746, 'end': 2.820125523012553}, {'word': 'mab', 'start': 3.1816317991631804, 'end': 3.623472803347281}, {'word': 'a', 'start': 3.9648953974895402, 'end': 4.18581589958159}, {'word': 'merch', 'start': 4.246066945606695, 'end': 5.169916317991632}]
 ```
 
-Use the `yt.sh` script to create locally subtitles for YouTube videos. For example for the video https://www.youtube.com/watch?v=OpiwHxPPqRI. The script creates new `.TextGrid` and `.srt` files in the `/recordings` folder.
+Use the `yt.sh` script to create locally subtitles for any YouTube video. For example for the video https://www.youtube.com/watch?v=OpiwHxPPqRI,  the script creates a `.TextGrid` and `.srt` files in the `/recordings` folder.
 
 
 ```shell
@@ -113,11 +109,7 @@ root@413c6994d668:/wav2vec2#
 
 ## Warning
 
-Please note that transcription results will not always be totally correct. We have 
-measured the error rate to be 15%, which is higher than error rates for English and other 
-larger languages that have error rates below 8%.
-
-The work on measuring and improving the models' capabilities is ongoing work. 
+Please note that transcription results will not always be totally correct. The work on measuring and improving the models' capabilities is ongoing work. See our [evaluation results for various models](../train/fine-tune/README_en.md#evaluation)
 
 In the meantime, if you would like to see the models improve, then record some Welsh
 sentences on the Mozilla Common Voice (https://voice.mozilla.org/cy) website, so that

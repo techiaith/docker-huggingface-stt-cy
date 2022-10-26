@@ -1,20 +1,19 @@
-# Fine tune Facebook AI wav2vec2 XLSR for Welsh
+# Fine tune wav2vec2 models for Welsh
 
-[(cliciwch yma os hoffwch ddarllen y README Cymraeg)](README.md)
+[**(cliciwch yma os hoffwch ddarllen y README Cymraeg)**](README.md)
 
-Code for fine tuning Facebook AI's wav2vec2 XLSR acoustic models with HuggingFace for
-Welsh language speech recognition. The original code was first developed and 
-subsequently specialized for Welsh during the HuggingFace Fine tuning week for lesser resourced languages:
+These are scripts to fine-tune a variety of pre-trained models that are available from HuggingFace's model hub.
 
-https://discuss.huggingface.co/t/open-to-the-community-xlsr-wav2vec2-fine-tuning-week-for-low-resource-languages/4467
+ - `run_xlsr-large-53.sh` - to fine-tune the first multilingual wav2vec2 models from Facebook : [facebook/wav2vec2-large-xlsr-53](https://huggingface.co/facebook/wav2vec2-large-xlsr-53) as well as create and optimize supporting KenLM language models
+ - `run_xls-r-1b.sh` - to fine-tune more multilingual wav2vec2 models - [facebook/wav2vec2-xls-r-1b](https://huggingface.co/facebook/wav2vec2-xls-r-1b) as well as create and optimize supporting KenLM language models
+ - `run_en_cy.sh` - fine-tune  [facebook/wav2vec2-large-xlsr-53](https://huggingface.co/facebook/wav2vec2-large-xlsr-53) for bilingual acoustic speech recognition models.
+ - `run_base-cy.sh` - fine-tuning an experimental model pre-trained by techiaith with more Welsh speech audio as well as create and optimize supporting KenLM language models
+  
+The first scripts for Welsh were developed during [a fine-tuning week for low resource languages by HuggingFace](https://discuss.huggingface.co/t/open-to-the-community-xlsr-wav2vec2-fine-tuning-week-for-low-resource-languages/4467).
 
-Welsh language data from Mozilla Common Voice was used for fine tuning acoustic models. 
+Our own subsets of Welsh and English Common Voice data were built and used by Mozilla for refining the most effective models. See https://github.com/techiaith/docker-commonvoice-custom-splits-builder.
 
-Additional code in this repo adds training of a KenLM language model and optimization 
-of alpha and beta hyperparameters for CTC decoding. 
-
-The Welsh language text corpus provided by the OSCAR project via HuggingFace Datasets was used
-for training the languge model.
+The project includes scripts to train KenLM language models with text from the [OSCAR project corpus on the HuggingFace Datasets website](https://huggingface.co/datasets/oscar) and optimize alpha and beta CTC decoding hyperparameters. (We have integrated [Parlance CTC Decode](https://github.com/parlance/ctcdecode) to improve recognition results with the support of a language model)
 
 
 # How to use...
@@ -23,58 +22,41 @@ for training the languge model.
 
 `$ make run `
 `
-In order to download the Common Voice data, you will need to create a file named `data_url.py` that contains only one line
-for the data's URL provided to you be the Common Voice website...
+In order to download and import the Common Voice data, you need to create a Python file to contain a URL to its `.tar.gz` file. An example/template can be found in the file [`cv_version.template.py`](cv_version.template.py). Enter the name of the file (without the `.py` extension) into the variable `CV_CONFIG_FILE` inside the script you would like to use for training.
 
-`root@bff0be8425ea:/usr/src/xlsr-finetune# vi data_url.py`
+(it is expected that you have downloaded the Common Voice dataset(s) from the official website and re-located the `.tar.gz` file to your own local `http` server)
 
-`_DATA_URL = "https://voice-prod-bundler-ee1969a6ce8178826482b88e843c335139bd3fb4.s3.amazonaws.com/cv-corpus-7.0-2021-07-21/cy.tar.gz"`
+Then to start training, choose any of the four "run" scripts. E.g.
 
-See also https://commonvoice.mozilla.org/cy/datasets
+`root@d702159be82f:/xlsr-ft-train# ./run_xlsr-large-53.sh`
 
-Then to start training....
-
-`root@bff0be8425ea:/usr/src/xlsr-finetune# python3 run.py`
-
-Depending on your graphics card, it will take some hours to train.
+Depending on the graphics card, it will take a few hours to train.
 
 
 # Evaluation
 
-`root@bff0be8425ea:/usr/src/xlsr-finetune# python3 evaluate.py`
+The scripts will evaluate the models during the training. Here are the results after each step is complete:
 
-|Training Data | Test Data | Model | Decode | WER | CER |
-|---|---|---|---|---|---|
-|cv11 training+validation+custom other (s=3) | cv11 test | wav2vec2-xls-r-1b | greedy | **15.82%** | **4.53%**|
-|cv11 training+validation+custom other (s=3) | cv11 test | wav2vec2-xls-r-1b | ctc | **15.72%** | **4.50%**|
-|cv11 training+validation+custom other (s=3) | cv11 test | wav2vec2-xls-r-1b | ctc with lm (kenlm, n=5) | **10.17%** | **3.42%**|
-|cv11 training+validation+custom other (s=3) | cv11 test | wav2vec2-large-xlsr-53 | greedy | 16.73% | 4.63% |
-|cv11 training+validation+custom other (s=3) | cv11 test | wav2vec2-large-xlsr-53 | ctc | 16.62% | 4.61% |
-|cv11 training+validation+custom other (s=3) | cv11 test | wav2vec2-large-xlsr-53 | ctc with lm (kenlm, n=5) | 10.45% | 3.42% |
-|cv11 training+validation (s=3) | cv11 test | wav2vec2-large-xlsr-53 | greedy | 17.42% | 4.83% |
-|cv11 training+validation (s=3) | cv11 test | wav2vec2-large-xlsr-53 | ctc | 17.29% | 4.80% |
-|cv11 training+validation (s=3) | cv11 test | wav2vec2-large-xlsr-53 | ctc with lm (kenlm, n=5) | 10.82% | 3.58% |
-|cv10 training+validation+custom other | cv10 test | wav2vec2-xls-r-1b | greedy | 19.67% | 5.24%|
-|cv10 training+validation+custom other | cv10 test | wav2vec2-xls-r-1b | ctc | 19.50% | 5.43%|
-|cv10 training+validation+custom other | cv10 test | wav2vec2-xls-r-1b | ctc with lm (kenlm, n=5) | 12.50% | 4.36%|
-|cv10 training+validation+custom other | cv10 test | wav2vec2-large-xlsr-53 | greedy | 22.52% | 6.23%|
-|cv10 training+validation+custom other | cv10 test | wav2vec2-large-xlsr-53 | ctc | 22.44% | 6.22%|
-|cv10 training+validation+custom other | cv10 test | wav2vec2-large-xlsr-53 | ctc with lm (kenlm, n=5) | 13.38% | 4.52%|
-|cv10 training+validation | cv10 test | wav2vec2-large-xlsr-53 | greedy | 23.17% | 6.45%|
-|cv10 training+validation | cv10 test |wav2vec2-large-xlsr-53 | ctc | 23.06% | 6.40%|
-|cv10 training+validation | cv10 test | wav2vec2-large-xlsr-53 | ctc with lm (kenlm, n=5) | 13.74% | 4.69%|
-|cv9 training+validation | cv9 test | wav2vec2-large-xlsr-53 | greedy | 23.15% | 6.48%|
-|cv9 training+validation | cv9 test | wav2vec2-large-xlsr-53 | ctc | 23.08% | 6.46%|
-|cv9 training+validation | cv9 test | wav2vec2-large-xlsr-53 | ctc with lm (kenlm, n=5) | 13.69% | 4.71%|
-|cv9 training+validation | cv9 test | wav2vec2-xls-r-1b | greedy | 19.68% | 5.5%|
-|cv9 training+validation | cv9 test | wav2vec2-xls-r-1b | ctc | 19.6% | 5.47%|
-|cv9 training+validation | cv9 test | wav2vec2-xls-r-1b | ctc with lm (kenlm, n=5) | 12.38% | 4.07%|
-|cv8 training+validation | cv8 test | wav2vec2-large-xlsr-53 | greedy | 24.03%% | 6.74%|
-|cv8 training+validation | cv8 test | wav2vec2-large-xlsr-53 | ctc | 24.01% | 6.71%|
-|cv8 training+validation | cv8 test | wav2vec2-large-xlsr-53 | ctc with lm (kenlm, n=5) | 13.79% | 4.77%|
-|cv7 training+validation | cv7 test | wav2vec2-large-xlsr-53 | greedy | 24.28%% ||
-|cv7 training+validation | cv7 test | wav2vec2-large-xlsr-53 | ctc | 24.27% ||
-|cv7 training+validation | cv7 test | wav2vec2-large-xlsr-53 | ctc with lm (kenlm, n=5) | 14.05% ||
-|cv6.1 training+validation | cv6.1 test | wav2vec2-large-xlsr-53 | greedy | 25.59% ||
-|cv6.1 training+validation | cv6.1 test | wav2vec2-large-xlsr-53 | ctc | 25.47% ||
-|cv6.1 training+validation | cv6.1 test |wav2vec2-large-xlsr-53 | ctc with lm (kenlm, n=5) | 15.07% ||
+|Language | Training Data | Test Data | Model | Decode | WER | CER |
+|---|---|---|---|---|---|---|
+| CY |cv11 training+validation (s=max) | cv11 test | wav2vec2-large-xlsr-53 | greedy | **6.04%** | **1.88%** |
+| CY |cv11 training+validation (s=max) | cv11 test | wav2vec2-large-xlsr-53 | ctc | **6.01%** | **1.88%** |
+| CY |cv11 training+validation (s=max) | cv11 test | wav2vec2-large-xlsr-53 | ctc with lm (kenlm, n=5) | **4.05%** | **1.49%** |
+| CY+EN |cv11 training+validation cy+en (s=max) | cv11 test cy+en | wav2vec2-large-xlsr-53 | greedy | 17.07% | 7.32% |
+| CY+EN |cv11 training+validation cy+en (s=max) | cv11 test cy| wav2vec2-large-xlsr-53 | greedy | 7.13% | 2.2% |
+| CY+EN |cv11 training+validation cy+en (s=max) | cv11 test en| wav2vec2-large-xlsr-53 | greedy | 27.54% | 11.6% |
+| CY |cv11 training+validation+custom other (s=3) | cv11 test | wav2vec2-xls-r-1b | greedy | 15.82% | 4.53% |
+| CY |cv11 training+validation+custom other (s=3) | cv11 test | wav2vec2-xls-r-1b | ctc | 15.72% | 4.50% |
+| CY |cv11 training+validation+custom other (s=3) | cv11 test | wav2vec2-xls-r-1b | ctc with lm (kenlm, n=5) | 10.17% | 3.42% |
+| CY |cv11 training+validation+custom other (s=3) | cv11 test | wav2vec2-large-xlsr-53 | greedy | 16.73% | 4.63% |
+| CY |cv11 training+validation+custom other (s=3) | cv11 test | wav2vec2-large-xlsr-53 | ctc | 16.62% | 4.61% |
+| CY |cv11 training+validation+custom other (s=3) | cv11 test | wav2vec2-large-xlsr-53 | ctc with lm (kenlm, n=5) | 10.45% | 3.42% |
+| CY |cv11 training+validation (s=3) | cv11 test | wav2vec2-large-xlsr-53 | greedy | 17.42% | 4.83% |
+| CY |cv11 training+validation (s=3) | cv11 test | wav2vec2-large-xlsr-53 | ctc | 17.29% | 4.80% |
+| CY |cv11 training+validation (s=3) | cv11 test | wav2vec2-large-xlsr-53 | ctc with lm (kenlm, n=5) | 10.82% | 3.58% |
+
+Key:
+
+- "custom other" : an additional subset created from recordings of unique sentences in 'other.tsv' in Common Voice. i.e. recordings that no-one has yet listened to and validated. 
+- "s=3" : the maximum number of recordings per unique sentence within Common Voice
+- "s=max" : quite a high maximum, so that every single recording of a sentence is allowed in the permitted

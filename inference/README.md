@@ -1,17 +1,15 @@
-# Sut i Ddefnyddio Modelau Adnabod Lleferydd wav2vec2.
+# Defnyddio Modelau Adnabod Lleferydd wav2vec2.
 
-[(click here to read the README in English)](README_en.md)
+[**(click here to read the README in English)**](README_en.md)
 
 ## Cefndir
 
-Cynnigir sawl dddull i alluogi defnyddio'r modelau adnabod lleferydd y project hwn yn lleol ac/neu o fewn projectau meddalwedd eich hunain.
+Cynnigir sawl ddull i chi ddefnyddio adnabod lleferydd gan gynnwys
 
- - o linell gorchymun 
+ - o linell gorchymun cyfrifiadur eich hunain 
  - o fewn cod Python eich hunain
  - o API ar weinydd lleol - gweler [server/README.md](server/README.md)
- - o API ar weinydd gan - gweler https://api.techiaith.org
- - o fewn wefan cywiro trawsgrifiadau awtomatig er mwyn creu is-deitlau - ewch i https://trawsgrifiwr.techiaith.cymru
-
+ 
 
 ## Llinell gorchymyn
 
@@ -213,7 +211,9 @@ total 6708
 
 ## Scriptiau Python
 
-Mae modd defnyddio'r modelau o fewn sgript Python syml fel y canlynol. **D.S.** nid yw'r enghraifft yma yn defnyddio model iaith i wella cywirdeb canlyniadau adnabod lleferydd o'r model acwstig.
+Mae modd defnyddio'r modelau o fewn sgript Python syml fel y canlynol. 
+
+**D.S.** nid yw'r enghraifft yma yn defnyddio model iaith i wella cywirdeb canlyniadau adnabod lleferydd o'r model acwstig.
 
 ### Dibyniaethau
 
@@ -246,3 +246,9 @@ predicted_ids = torch.argmax(logits, dim=-1)
 print("Prediction:", processor.batch_decode(predicted_ids))
 
 ```
+
+## Rhybudd
+
+Sylwch na fydd canlyniadau trawsgrifio bob amser yn hollol gywir. Mae'r gwaith o fesur a gwella cywirdeb y modelau yn waith parhaus. Gweler ein [canlyniadau gwerthuso ar gyfer modelau amrywiol](../train/fine-tune/README.md#evaluation)
+
+Yn y cyfamser, os hoffech weld y modelau yn gwella, yna recordiwch ychydig o frawddegau Cymraeg ar wefan Mozilla Common Voice ( https://voice.mozilla.org/cy ), fel bod bydd gennym fwy o ddata hyfforddi. Neu defnyddiwch ein ap cynorthwyydd - Macsen ( http://techiaith.cymru/macsen )

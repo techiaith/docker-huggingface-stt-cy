@@ -16,8 +16,8 @@ DeepSpeech are available - https://github.com/techiaith/docker-deepspeech-cy-ser
 ## Install
 
 ```
-$ git clone https://github.com/techiaith/docker-wav2vec2-xlsr-ft-cy
-$ cd docker-wav2vec2-xlsr-ft-cy/inference/server
+$ git clone https://github.com/techiaith/docker-wav2vec2-cy
+$ cd docker-wav2vec2-cy/inference/server
 $ make
 ```
 
@@ -25,32 +25,58 @@ The build process fetches models that have been pretrained by Bangor University'
 
 ## Use
 
-Runing the models within an APII redeg, requires only one additional command:
+Runing the models within an API, requires only one additional command:
 
 ```
-$ make run
+$ make up
 ```
 
-To verify that your API is up and running, you can make a simple text with a sample wav file provided within the folder:
+To verify that your API is up and running, you can make a simple text with a sample wav file provided within the folder: 
 
 ``` 
 $ curl -F 'soundfile=@speech.wav' localhost:5511/speech_to_text/
-{"version": 1, "success": true, "text": " mae ganddynt ddau o blant mab a merch ", "alignment": [["m", 0.6003829787234042], ["a", 0.640468085106383], ["e", 0.7005957446808511], [" ", 0.7607234042553191], ["g", 0.8208510638297872], ["a", 0.8809787234042553], ["n", 0.9811914893617021], ["d", 1.0413191489361702], ["d", 1.1214893617021275], ["y", 1.1816170212765957], ["n", 1.2818297872340427], ["t", 1.3820425531914893], [" ", 1.4421702127659572], ["d", 1.6025106382978722], ["d", 1.6626382978723404], ["a", 1.7428085106382978], ["u", 1.923191489361702], [" ", 2.0634893617021275], ["o", 2.1236170212765955], [" ", 2.183744680851064], ["b", 2.2438723404255314], ["l", 2.304], ["a", 2.3440851063829786], ["n", 2.5044255319148934], ["t", 2.6647659574468086], [" ", 2.7449361702127657], ["m", 3.165829787234043], ["a", 3.266042553191489], ["b", 3.5466382978723403], [" ", 3.6067659574468083], ["a", 3.9474893617021274], [" ", 4.188], ["m", 4.248127659574467], ["e", 4.348340425531915], ["r", 4.448553191489362], ["c", 4.568808510638298], ["h", 4.588851063829787], [" ", 5.10995744680851]]}
+{"version": 1, "success": true, "id": "e1684eab-e472-4aaa-8c4f-66c007477a7f"}
 ```
 
-You can transcribe your own recordings as long as files are in wav format and 16kHz mono channel.  
+(you can transcribe your own recordings as long as files are in wav format and 16kHz mono channel.)
 
-Also, go to http://localhost:5511/static_html/index.hml in order to use your speech recognition
-installation with sound files or microphone within a webpage.
+You will receive a response that is effectively only an acknowledgement of your request containing an id. Since it can take some time to perform speech to text on a file, you can check on the status with subsequent ping requests. If the audio's duration is longer than 5-10 seconds, the API will segment using voice detection. 
 
-## Warning
+```
+$ curl localhost:5511/get_status/?stt_id=e1684eab-e472-4aaa-8c4f-66c007477a7f
+{"version": 1, "status": "PENDING"}
+```
 
-Please note that transcription results will not always be totally correct. We have 
-measured the error rate to be 15%, which is higher than error rates for English and other 
-larger languages that have error rates below 8%.
+when transcription is complete, the response will be
 
-The work on measuring and improving the models' capabilities is ongoing work. 
+```
+$ curl localhost:5511/get_status/?stt_id=e1684eab-e472-4aaa-8c4f-66c007477a7f
+{"version": 1, "status": "SUCCESS"}
+````
 
-In the meantime, if you would like to see the models improve, then record some Welsh
-sentences on the Mozilla Common Voice (https://voice.mozilla.org/cy) website, so that
-we will have more training data. Or use our voice assistant app - Macsen (http://techiaith.cymru/macsen)
+The results can be obtained in srt format:
+
+```
+$ curl localhost:5511/get_srt/?stt_id=e1684eab-e472-4aaa-8c4f-66c007477a7f
+1
+00:00:00,619 --> 00:00:05,170
+mae ganddynt ddau o blant mab a merch
+```
+
+json:  (which contain alignments at word level)
+
+```
+$ curl localhost:5511/get_json/?stt_id=e1684eab-e472-4aaa-8c4f-66c007477a7f
+[{"text": "mae ganddynt ddau o blant mab a merch", "start": 0.619581589958159, "end": 5.170041841004185, "alignment": [{"word": "mae", "start": 0.619581589958159, "end": 0.7992050209205022}, {"word": "ganddynt", "start": 0.8391213389121339, "end": 1.457824267782427}, {"word": "ddau", "start": 1.6973221757322177, "end": 2.096485355648536}, {"word": "o", "start": 2.1563598326359834, "end": 2.1962761506276154}, {"word": "blant", "start": 2.256150627615063, "end": 2.7950209205020924}, {"word": "mab", "start": 3.1742259414225944, "end": 3.6133054393305444}, {"word": "a", "start": 3.9725523012552304, "end": 4.17213389121339}, {"word": "merch", "start": 4.251966527196653, "end": 5.170041841004185}]}]
+```
+
+or csv:
+
+```
+$ curl localhost:5511/get_csv/?stt_id=e1684eab-e472-4aaa-8c4f-66c007477a7f
+ID      Start   End     Transcript
+1       0.619581589958159       5.170041841004185       mae ganddynt ddau o blant mab a merch
+```
+
+
+The server provides a very simple HTML GUI in order to use/support the above API. Go to http://localhost:5511/static_html/index.hml

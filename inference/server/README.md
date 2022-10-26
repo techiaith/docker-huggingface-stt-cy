@@ -1,23 +1,16 @@
 # Gweinydd Adnabod Lleferydd wav2vec2 Cymraeg
 
-[(click here to read the README in English)](README_en.md)
+[**(click here to read the README in English)**](README_en.md)
 
 ## Cefndir
 
-Os hoffwch chi osod a defnyddio'r peiriant adnabod lleferydd Cymraeg wav2vec2 yn 
-lleol ar gyfrifiadur eich hunain, yn hytrach na defnyddio'r gwasanaeth API ar wefan 
-https://api.techiaith.org/cy/ yna defnyddiwch yr adnoddau yn y ffolder hon. 
-
-**D.S.** - mae modelau wav2vec2 yn eitha’ mawr, ac felly byddwch angen cyfrifiadur 
-gyda digon o gof er mwyn eu defnyddio. Os nad oes digon o gof yn eich cyfrifiadur ond 
-hoffwch chi ddal medru rhedeg peiriant adnabod lleferydd yn lleol, yna mae modelau
-llai ar sail Mozilla DeepSpeech ar gael - https://github.com/techiaith/docker-deepspeech-cy-server
+Os ydych yn pryderu am breifatrwydd unrhyw API adnabod lleferydd Cymraeg ar-lein, fel yr un gan https://api.techiaith.org/cy, yna mae cynnwys y ffolder hwn yn eich helpu i osod a defnyddio gosodiad lleol eich hunain.
 
 ## Gosod
 
 ```
-$ git clone https://github.com/techiaith/docker-wav2vec2-xlsr-ft-cy
-$ cd docker-wav2vec2-xlsr-ft-cy/inference/server
+$ git clone https://github.com/techiaith/docker-wav2vec2-cy
+$ cd docker-wav2vec2-cy/inference/server
 $ make
 ```
 
@@ -29,27 +22,53 @@ Mae'r proses gosod yn estyn modelau sydd wedi'i hyfforddi eisoes gan Uned Techno
 I redeg, does ond angen un gorchymyn ychwanegol..
 
 ```
-$ make run
+$ make up
 ```
 
 I'w brofi'n syml, mae'n bosib gyrru'r ffeil wav enghreifftiol sydd wedi'i gynnwys o fewn y project.
 
 ``` 
 $ curl -F 'soundfile=@speech.wav' localhost:5511/speech_to_text/
-{"version": 1, "success": true, "text": " mae ganddynt ddau o blant mab a merch ", "alignment": [["m", 0.6003829787234042], ["a", 0.640468085106383], ["e", 0.7005957446808511], [" ", 0.7607234042553191], ["g", 0.8208510638297872], ["a", 0.8809787234042553], ["n", 0.9811914893617021], ["d", 1.0413191489361702], ["d", 1.1214893617021275], ["y", 1.1816170212765957], ["n", 1.2818297872340427], ["t", 1.3820425531914893], [" ", 1.4421702127659572], ["d", 1.6025106382978722], ["d", 1.6626382978723404], ["a", 1.7428085106382978], ["u", 1.923191489361702], [" ", 2.0634893617021275], ["o", 2.1236170212765955], [" ", 2.183744680851064], ["b", 2.2438723404255314], ["l", 2.304], ["a", 2.3440851063829786], ["n", 2.5044255319148934], ["t", 2.6647659574468086], [" ", 2.7449361702127657], ["m", 3.165829787234043], ["a", 3.266042553191489], ["b", 3.5466382978723403], [" ", 3.6067659574468083], ["a", 3.9474893617021274], [" ", 4.188], ["m", 4.248127659574467], ["e", 4.348340425531915], ["r", 4.448553191489362], ["c", 4.568808510638298], ["h", 4.588851063829787], [" ", 5.10995744680851]]}
+{"version": 1, "success": true, "id": "e1684eab-e472-4aaa-8c4f-66c007477a7f"}
+```
+(gallwch drawsgrifio eich recordiadau eich hun cyn belled â bod y ffeiliau mewn fformat wav a sianel mono 16kHz.)
+
+Byddwch yn derbyn ymateb sydd i bob pwrpas ond yn gydnabyddiaeth o'ch cais sy'n cynnwys rhif adnabod. Gan y gall gymryd peth amser i berfformio lleferydd i destun ar ffeil, gallwch wirio'r statws gyda cheisiadau ping dilynol. Os yw hyd y sain yn hirach na 5-10 eiliad, bydd yr API yn segmentu gan ddefnyddio canfod llais.
+
+```
+$ curl localhost:5511/get_status/?stt_id=e1684eab-e472-4aaa-8c4f-66c007477a7f
+{"version": 1, "status": "PENDING"}
 ```
 
-Mae modd defnyddio recordiadau eich hunain, cyn belled â'u bod ar ffurf wav ac yn 16kHz, un sianel. 
+pan fydd y trawsgrifiad wedi'i gwblhau, bydd yr ymateb
 
-Ewch i http://localhost:5511/static_html/index.hml er mwyn defnyddio'r peiriant adnabod lleferydd 
-o fewn dudalen we gyda ffeiliau sain eraill neu feicroffon.
+```
+$ curl localhost:5511/get_status/?stt_id=e1684eab-e472-4aaa-8c4f-66c007477a7f
+{"version": 1, "status": "SUCCESS"}
+````
 
+Gellir cael y canlyniadau mewn fformat srt:
 
-## Rhybudd
+```
+$ curl localhost:5511/get_srt/?stt_id=e1684eab-e472-4aaa-8c4f-66c007477a7f
+1
+00:00:00,619 --> 00:00:05,170
+mae ganddynt ddau o blant mab a merch
+```
 
-Rhaid cofio *ni fydd y canlyniadau pob tro yn hollol gywir*. Rydyn wedi mesur y gyfradd gwallau yn 15%, sydd yn uwch na Saesneg ac ieithoedd mawr eraill sydd â chyfraddau o dan 8%. 
+json:  ( sy'n cynnwys aliniadau ar lefel geiriau )
 
-Mae mesur gallu'r peiriant yn ogystal â'i wella yn waith sy'n dal yn parhau. 
+```
+$ curl localhost:5511/get_json/?stt_id=e1684eab-e472-4aaa-8c4f-66c007477a7f
+[{"text": "mae ganddynt ddau o blant mab a merch", "start": 0.619581589958159, "end": 5.170041841004185, "alignment": [{"word": "mae", "start": 0.619581589958159, "end": 0.7992050209205022}, {"word": "ganddynt", "start": 0.8391213389121339, "end": 1.457824267782427}, {"word": "ddau", "start": 1.6973221757322177, "end": 2.096485355648536}, {"word": "o", "start": 2.1563598326359834, "end": 2.1962761506276154}, {"word": "blant", "start": 2.256150627615063, "end": 2.7950209205020924}, {"word": "mab", "start": 3.1742259414225944, "end": 3.6133054393305444}, {"word": "a", "start": 3.9725523012552304, "end": 4.17213389121339}, {"word": "merch", "start": 4.251966527196653, "end": 5.170041841004185}]}]
+```
 
-Yn y cyfamser, os hoffwch chi weld y peiriannau yn gwella, yna recordiwch rhai brawddegau wefan Mozilla CommonVoice (https://voice.mozilla.org/cy), fel bydd gennyn ni ragor o ddata hyfforddi'r peiriannau. 
-Neu defnyddiwch ein hap Macsen! (http://techiaith.cymru/macsen)
+neu csv:
+
+```
+$ curl localhost:5511/get_csv/?stt_id=e1684eab-e472-4aaa-8c4f-66c007477a7f
+ID      Start   End     Transcript
+1       0.619581589958159       5.170041841004185       mae ganddynt ddau o blant mab a merch
+```
+
+Mae'r gweinydd yn darparu GUI HTML syml iawn hefyd er mwyn defnyddio/cefnogi'r API uchod. Ewch i http://localhost:5511/static_html/index.hml
