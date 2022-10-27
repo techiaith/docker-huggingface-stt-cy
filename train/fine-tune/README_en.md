@@ -42,9 +42,14 @@ The scripts will evaluate the models during the training. Here are the results a
 | CY |cv11 training+validation (s=max) | cv11 test | wav2vec2-large-xlsr-53 | greedy | **6.04%** | **1.88%** |
 | CY |cv11 training+validation (s=max) | cv11 test | wav2vec2-large-xlsr-53 | ctc | **6.01%** | **1.88%** |
 | CY |cv11 training+validation (s=max) | cv11 test | wav2vec2-large-xlsr-53 | ctc with lm (kenlm, n=5) | **4.05%** | **1.49%** |
+| CY |cv11 training+validation (s=max) | bangor custom | wav2vec2-large-xlsr-53 | greedy | 37.46% | 14.11% |
+| CY |cv11 training+validation (s=max) | bangor custom | wav2vec2-large-xlsr-53 | ctc | 37.18% | 14.08% |
+| CY |cv11 training+validation (s=max) | bangor custom | wav2vec2-large-xlsr-53 | ctc with lm (kenlm, n=5) | 31.51% | 14.84% |
 | CY+EN |cv11 training+validation cy+en (s=max) | cv11 test cy+en | wav2vec2-large-xlsr-53 | greedy | 17.07% | 7.32% |
 | CY+EN |cv11 training+validation cy+en (s=max) | cv11 test cy| wav2vec2-large-xlsr-53 | greedy | 7.13% | 2.2% |
 | CY+EN |cv11 training+validation cy+en (s=max) | cv11 test en| wav2vec2-large-xlsr-53 | greedy | 27.54% | 11.6% |
+| CY+EN |cv11 training+validation (s=max) | bangor custom | wav2vec2-large-xlsr-53 | greedy | 40.76% | 15.42% |
+| CY+EN |cv11 training+validation (s=max) | bangor custom | wav2vec2-large-xlsr-53 | ctc | 40.47.18% | 15.34% |
 | CY |cv11 training+validation+custom other (s=3) | cv11 test | wav2vec2-xls-r-1b | greedy | 15.82% | 4.53% |
 | CY |cv11 training+validation+custom other (s=3) | cv11 test | wav2vec2-xls-r-1b | ctc | 15.72% | 4.50% |
 | CY |cv11 training+validation+custom other (s=3) | cv11 test | wav2vec2-xls-r-1b | ctc with lm (kenlm, n=5) | 10.17% | 3.42% |
@@ -60,3 +65,4 @@ Key:
 - "custom other" : an additional subset created from recordings of unique sentences in 'other.tsv' in Common Voice. i.e. recordings that no-one has yet listened to and validated. 
 - "s=3" : the maximum number of recordings per unique sentence within Common Voice
 - "s=max" : quite a high maximum, so that every single recording of a sentence is allowed in the permitted
+- "bangor custom" : a transcriptions test set constructed at Bangor University: https://git.techiaith.bangor.ac.uk/data-porth-technolegau-iaith/corpws-profi-adnabod-lleferydd/-/tree/master/data/trawsgrifio
