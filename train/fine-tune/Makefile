@@ -38,6 +38,8 @@ stop:
 
 clean: stop
 	-docker rmi techiaith/wav2vec2-xlsr-ft-train-${USER}
+
+purge: clean
 	sudo rm -rf homedir
 	sudo rm -rf logs
 

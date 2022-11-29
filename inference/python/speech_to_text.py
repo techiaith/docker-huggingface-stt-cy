@@ -114,7 +114,7 @@ class SpeechToText:
 
             features = self.processor(audio, sampling_rate=16_000, return_tensors="pt", padding=True)
             with torch.no_grad():
-                logits = self.model(features.input_values.to(self.device), attention_mask=features.attention_mask.to(self.device)).logits
+                logits = self.model(features.input_values.to(self.device, dtype=torch.float32), attention_mask=features.attention_mask.to(self.device)).logits
 
             transcription, alignment, timesteps = self.ctc_decode(logits, withlm) 
             
